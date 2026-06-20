@@ -85,7 +85,7 @@ export async function importEmployeesFromCsv(
   // Fetch existing IDs so we can skip without an upsert touching registered rows
   const { data: existing, error: fetchError } = await admin
     .from("approved_employees")
-    .select("employee_id");
+    .select("*");
 
   if (fetchError) {
     return { error: `Failed to check existing employees: ${fetchError.message}` };

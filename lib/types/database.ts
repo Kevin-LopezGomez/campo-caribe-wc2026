@@ -6,6 +6,10 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+// ---- Domain enums (defined first so they can be used in the Database type) ----
+export type Round = "R32" | "R16" | "QF" | "SF" | "F";
+export type MatchStatus = "scheduled" | "live" | "completed";
+
 export interface Database {
   public: {
     Tables: {
@@ -31,6 +35,7 @@ export interface Database {
           is_admin?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       approved_employees: {
         Row: {
@@ -66,6 +71,7 @@ export interface Database {
           added_at?: string;
           added_by?: string | null;
         };
+        Relationships: [];
       };
       teams: {
         Row: {
@@ -95,6 +101,7 @@ export interface Database {
           is_top_20?: boolean;
           eliminated?: boolean;
         };
+        Relationships: [];
       };
       matches: {
         Row: {
@@ -133,6 +140,7 @@ export interface Database {
           away_score?: number | null;
           next_match_id?: string | null;
         };
+        Relationships: [];
       };
       ride_or_die_picks: {
         Row: {
@@ -159,6 +167,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       match_picks: {
         Row: {
@@ -191,6 +200,7 @@ export interface Database {
           submitted_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       score_events: {
         Row: {
@@ -220,6 +230,7 @@ export interface Database {
           team_id?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       settings: {
         Row: {
@@ -234,36 +245,47 @@ export interface Database {
           key?: string;
           value?: Json;
         };
+        Relationships: [];
       };
+    };
+    Views: {
+      [_ in never]: never;
     };
     Functions: {
       is_admin: {
-        Args: Record<never, never>;
+        Args: Record<string, never>;
         Returns: boolean;
       };
       get_leaderboard: {
-        Args: Record<never, never>;
-        Returns: LeaderboardEntry[];
+        Args: Record<string, never>;
+        Returns: {
+          user_id: string;
+          full_name: string;
+          employee_id: string;
+          total_points: number;
+        }[];
       };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
     };
   };
 }
 
 // ---- Convenience row types ----
-export type Profile         = Database["public"]["Tables"]["profiles"]["Row"];
+export type Profile          = Database["public"]["Tables"]["profiles"]["Row"];
 export type ApprovedEmployee = Database["public"]["Tables"]["approved_employees"]["Row"];
-export type Team            = Database["public"]["Tables"]["teams"]["Row"];
-export type Match           = Database["public"]["Tables"]["matches"]["Row"];
-export type RideOrDiePick   = Database["public"]["Tables"]["ride_or_die_picks"]["Row"];
-export type MatchPick       = Database["public"]["Tables"]["match_picks"]["Row"];
-export type ScoreEvent      = Database["public"]["Tables"]["score_events"]["Row"];
-export type Setting         = Database["public"]["Tables"]["settings"]["Row"];
+export type Team             = Database["public"]["Tables"]["teams"]["Row"];
+export type Match            = Database["public"]["Tables"]["matches"]["Row"];
+export type RideOrDiePick    = Database["public"]["Tables"]["ride_or_die_picks"]["Row"];
+export type MatchPick        = Database["public"]["Tables"]["match_picks"]["Row"];
+export type ScoreEvent       = Database["public"]["Tables"]["score_events"]["Row"];
+export type Setting          = Database["public"]["Tables"]["settings"]["Row"];
 
-// ---- Domain enums ----
-export type Round       = "R32" | "R16" | "QF" | "SF" | "F";
-export type MatchStatus = "scheduled" | "live" | "completed";
-
-// ---- Derived/composite types ----
+// ---- Composite/derived types ----
 export type LeaderboardEntry = {
   user_id: string;
   full_name: string;
