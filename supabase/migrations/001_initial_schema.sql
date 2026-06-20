@@ -353,5 +353,13 @@ create policy "settings: admins write"
 -- ============================================================
 -- GRANTS
 -- ============================================================
+
+-- Table-level access (separate from RLS — required when tables are created via SQL)
+grant usage on schema public to anon, authenticated, service_role;
+grant all    on all tables    in schema public to authenticated, service_role;
+grant all    on all sequences in schema public to authenticated, service_role;
+grant select on all tables    in schema public to anon;
+
+-- Function access
 grant execute on function public.get_leaderboard() to authenticated;
 grant execute on function public.is_admin()        to authenticated;
