@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { resetPassword } from "@/app/auth/forgot-password/actions";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,32 +14,60 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
+  const [accessKey, setAccessKey] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handleReset = async (e: { preventDefault(): void }) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError("Password must be at least 8 characters.");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // The url which will be included in the email. This URL needs to be configured in your redirect URLs in the Supabase dashboard at https://supabase.com/dashboard/project/_/auth/url-configuration
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
+      const result = await resetPassword(
+        employeeId.trim(),
+        accessKey.trim(),
+        newPassword
+      );
+
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+
+      // Auto-login after successful reset
+      const supabase = createClient();
+      await supabase.auth.signInWithPassword({
+        email: `${employeeId.trim()}@campocaribe.internal`,
+        password: newPassword,
       });
-      if (error) throw error;
-      setSuccess(true);
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+
+      router.push("/");
+    } catch {
+      setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -46,60 +75,72 @@ export function ForgotPasswordForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      {success ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Check Your Email</CardTitle>
-            <CardDescription>Password reset instructions sent</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              If you registered using your email and password, you will receive
-              a password reset email.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Reset Your Password</CardTitle>
-            <CardDescription>
-              Type in your email and we&apos;ll send you a link to reset your
-              password
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleForgotPassword}>
-              <div className="flex flex-col gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Send reset email"}
-                </Button>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl">Reset your password</CardTitle>
+          <CardDescription>
+            Enter your employee ID and the new access key from HR
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleReset}>
+            <div className="flex flex-col gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="employeeId">Employee ID</Label>
+                <Input
+                  id="employeeId"
+                  placeholder="e.g. CC-001"
+                  required
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value)}
+                />
               </div>
-              <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
-                <Link
-                  href="/auth/login"
-                  className="underline underline-offset-4"
-                >
-                  Login
-                </Link>
+              <div className="grid gap-2">
+                <Label htmlFor="accessKey">New Access Key</Label>
+                <Input
+                  id="accessKey"
+                  placeholder="New 6-digit code from HR"
+                  required
+                  maxLength={6}
+                  value={accessKey}
+                  onChange={(e) => setAccessKey(e.target.value)}
+                />
               </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+              <div className="grid gap-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  required
+                  minLength={8}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Resetting..." : "Reset password"}
+              </Button>
+            </div>
+            <div className="mt-4 text-center text-sm">
+              Remember your password?{" "}
+              <Link href="/auth/login" className="underline underline-offset-4">
+                Log in
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -13,20 +13,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const [email, setEmail] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const justRegistered = searchParams.get("registered") === "1";
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     const supabase = createClient();
     setIsLoading(true);
@@ -34,14 +36,13 @@ export function LoginForm({
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: `${employeeId.trim()}@campocaribe.internal`,
         password,
       });
       if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
-      router.push("/protected");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      router.push("/");
+    } catch {
+      setError("Invalid employee ID or password.");
     } finally {
       setIsLoading(false);
     }
@@ -51,23 +52,24 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Log in</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            {justRegistered
+              ? "Account created! Log in to continue."
+              : "Enter your employee ID and password"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin}>
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="employeeId">Employee ID</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
+                  id="employeeId"
+                  placeholder="e.g. CC-001"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={employeeId}
+                  onChange={(e) => setEmployeeId(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
@@ -77,7 +79,7 @@ export function LoginForm({
                     href="/auth/forgot-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
-                    Forgot your password?
+                    Forgot password?
                   </Link>
                 </div>
                 <Input
@@ -88,17 +90,14 @@ export function LoginForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? "Logging in..." : "Log in"}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
-              <Link
-                href="/auth/sign-up"
-                className="underline underline-offset-4"
-              >
+              <Link href="/auth/sign-up" className="underline underline-offset-4">
                 Sign up
               </Link>
             </div>
