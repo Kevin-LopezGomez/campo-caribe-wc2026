@@ -16,7 +16,10 @@ export async function signUp(
     .eq("employee_id", employeeId)
     .single();
 
-  if (lookupError || !employee) {
+  if (lookupError) {
+    return { error: `Database error: ${lookupError.message}` };
+  }
+  if (!employee) {
     return { error: "Employee ID not found. Contact HR if you believe this is an error." };
   }
 
