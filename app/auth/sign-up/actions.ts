@@ -7,6 +7,10 @@ export async function signUp(
   accessKey: string,
   password: string
 ): Promise<{ error?: string }> {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { error: "Config error: SUPABASE_SERVICE_ROLE_KEY is not set in this deployment." };
+  }
+
   const admin = createAdminClient();
 
   // Validate against the HR allowlist
