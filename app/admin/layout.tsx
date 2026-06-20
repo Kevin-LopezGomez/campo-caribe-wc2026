@@ -1,15 +1,11 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "@/components/logout-button";
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+async function AdminGuard({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -17,12 +13,19 @@ export default async function AdminLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("is_admin, full_name")
+    .select("is_admin")
     .eq("id", user.id)
     .single();
-
   if (!profile?.is_admin) redirect("/");
 
+  return <>{children}</>;
+}
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <nav className="w-full border-b border-border">
@@ -58,7 +61,9 @@ export default async function AdminLayout({
       </nav>
 
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6">
-        {children}
+        <Suspense>
+          <AdminGuard>{children}</AdminGuard>
+        </Suspense>
       </main>
     </div>
   );

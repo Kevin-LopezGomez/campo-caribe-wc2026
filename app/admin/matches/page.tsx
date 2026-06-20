@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AdminMatchesClient } from "./matches-client";
 import type { Team } from "@/lib/types/database";
@@ -16,9 +17,8 @@ export type AdminMatch = {
   winner_team: Pick<Team, "id" | "name" | "flag_emoji"> | null;
 };
 
-export default async function AdminMatchesPage() {
+async function MatchesData() {
   const admin = createAdminClient();
-
   const [matchesResult, teamsResult] = await Promise.all([
     admin
       .from("matches")
@@ -38,6 +38,30 @@ export default async function AdminMatchesPage() {
   }
 
   return (
+    <AdminMatchesClient
+      matches={(matchesResult.data ?? []) as unknown as AdminMatch[]}
+      teams={(teamsResult.data ?? []) as Team[]}
+    />
+  );
+}
+
+function MatchesSkeleton() {
+  return (
+    <div className="space-y-6">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="space-y-2">
+          <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+          {Array.from({ length: 4 }).map((_, j) => (
+            <div key={j} className="h-16 bg-muted rounded-lg animate-pulse" />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function AdminMatchesPage() {
+  return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Matches</h1>
@@ -45,10 +69,9 @@ export default async function AdminMatchesPage() {
           Assign teams to bracket slots · Enter scores · Update status
         </p>
       </div>
-      <AdminMatchesClient
-        matches={(matchesResult.data ?? []) as unknown as AdminMatch[]}
-        teams={(teamsResult.data ?? []) as Team[]}
-      />
+      <Suspense fallback={<MatchesSkeleton />}>
+        <MatchesData />
+      </Suspense>
     </div>
   );
 }
