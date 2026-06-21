@@ -16,7 +16,7 @@ export async function signUp(
   // Validate against the HR allowlist — ilike so casing in HR's spreadsheet doesn't matter
   const { data: employee, error: lookupError } = await admin
     .from("approved_employees")
-    .select("employee_id, full_name, access_key, role, is_registered")
+    .select("employee_id, full_name, access_key, role, is_registered, job_title, home_department, division")
     .ilike("employee_id", employeeId)
     .maybeSingle();
 
@@ -48,6 +48,9 @@ export async function signUp(
       employee_id: canonicalId,
       full_name: employee.full_name,
       role: employee.role ?? "user",
+      job_title: employee.job_title ?? "",
+      home_department: employee.home_department ?? "",
+      division: employee.division ?? "",
     },
   });
 

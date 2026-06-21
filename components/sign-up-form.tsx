@@ -92,7 +92,7 @@ export function SignUpForm({
                 <Label htmlFor="employeeId">Employee ID</Label>
                 <Input
                   id="employeeId"
-                  placeholder="e.g. CC001"
+                  placeholder="e.g. 6KYLJ6V2N"
                   required
                   autoCapitalize="characters"
                   autoComplete="off"
