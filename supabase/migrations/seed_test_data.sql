@@ -53,7 +53,7 @@ BEGIN
         'role',        'user'
       ),
       now(), now(), false
-    ) ON CONFLICT (email) DO NOTHING;
+    ) ON CONFLICT DO NOTHING;
 
     -- profiles: trigger creates it, but ensure is_test=true and correct id
     INSERT INTO public.profiles (id, employee_id, full_name, is_admin, role, is_test)

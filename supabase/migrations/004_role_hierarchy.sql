@@ -78,6 +78,8 @@ END;
 $$;
 
 -- ---- Update get_leaderboard() to include role + is_test ----
+-- Must DROP first because return type columns changed (CREATE OR REPLACE is blocked by PG)
+DROP FUNCTION IF EXISTS public.get_leaderboard();
 CREATE OR REPLACE FUNCTION public.get_leaderboard()
 RETURNS TABLE (
   user_id       uuid,
