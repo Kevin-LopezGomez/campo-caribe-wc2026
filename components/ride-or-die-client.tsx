@@ -13,9 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import type { Team } from "@/lib/types/database";
 import { saveRideOrDiePick } from "@/app/ride-or-die/actions";
 
-const GROUP_LETTERS = [
-  "A","B","C","D","E","F","G","H","I","J","K","L",
-] as const;
 
 type PickedTeam = {
   id: string;
@@ -129,12 +126,6 @@ export function RideOrDieClient({
   const [error, setError] = useState<string>();
   const [isPending, startTransition] = useTransition();
 
-  const byGroup: Record<string, Team[]> = {};
-  for (const t of teams) {
-    const g = t.group_letter ?? "?";
-    (byGroup[g] ??= []).push(t);
-  }
-
   function handleTeamClick(team: Team) {
     if (isLocked || team.eliminated) return;
     if (team.id === currentPick?.team_id) return; // already this pick
@@ -213,31 +204,18 @@ export function RideOrDieClient({
         )}
       </p>
 
-      {/* ── Team grid by group ── */}
-      <div className="space-y-6">
-        {GROUP_LETTERS.map((letter) => {
-          const groupTeams = byGroup[letter];
-          if (!groupTeams || groupTeams.length === 0) return null;
-          return (
-            <div key={letter}>
-              <h2 className="text-sm font-semibold text-muted-foreground mb-2">
-                Group {letter}
-              </h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {groupTeams.map((team) => (
-                  <TeamCard
-                    key={team.id}
-                    team={team}
-                    isSelected={team.id === currentPick?.team_id}
-                    isLocked={isLocked}
-                    pickCount={pickCounts[team.id]}
-                    onClick={() => handleTeamClick(team)}
-                  />
-                ))}
-              </div>
-            </div>
-          );
-        })}
+      {/* ── Team grid (flat A-Z, no group sections) ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        {teams.map((team) => (
+          <TeamCard
+            key={team.id}
+            team={team}
+            isSelected={team.id === currentPick?.team_id}
+            isLocked={isLocked}
+            pickCount={pickCounts[team.id]}
+            onClick={() => handleTeamClick(team)}
+          />
+        ))}
       </div>
 
       {/* ── Legend ── */}

@@ -22,7 +22,6 @@ async function RideOrDieData() {
     supabase
       .from("teams")
       .select("*")
-      .order("group_letter")
       .order("name"),
     supabase
       .from("ride_or_die_picks")
