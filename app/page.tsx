@@ -4,19 +4,32 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "@/components/logout-button";
 
+type RodPick = {
+  team: { name: string; flag_emoji: string; is_top_20: boolean } | null;
+} | null;
+
 async function Dashboard() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/auth/login");
 
-  if (!user) {
-    redirect("/auth/login");
-  }
+  const [profileResult, rodPickResult] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("full_name, is_admin")
+      .eq("id", user.id)
+      .single(),
+    supabase
+      .from("ride_or_die_picks")
+      .select("team:team_id(name, flag_emoji, is_top_20)")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, is_admin")
-    .eq("id", user.id)
-    .single();
+  const profile = profileResult.data;
+  const rodPick = rodPickResult.data as RodPick;
 
   return (
     <div className="flex-1 w-full max-w-5xl p-6 flex flex-col gap-8">
@@ -30,17 +43,35 @@ async function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors cursor-not-allowed opacity-60">
-          <h2 className="font-semibold text-lg mb-1">🎯 Ride or Die</h2>
-          <p className="text-sm text-muted-foreground mb-3">
-            Pick one team and ride with them through the tournament.
-          </p>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
-            Coming soon
+        {/* Ride or Die — shows pick if set */}
+        <Link
+          href="/ride-or-die"
+          className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
+        >
+          <h2 className="font-semibold text-lg mb-2">🎯 Ride or Die</h2>
+          {rodPick?.team ? (
+            <div className="mb-3">
+              <p className="text-xs text-muted-foreground mb-0.5">Your pick</p>
+              <p className="text-xl font-bold">
+                {rodPick.team.flag_emoji} {rodPick.team.name}
+              </p>
+              {!rodPick.team.is_top_20 && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  🌟 Cinderella — 2× points
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground mb-3">
+              Pick one team and ride with them through the tournament.
+            </p>
+          )}
+          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+            {rodPick?.team ? "Change pick →" : "Pick a team →"}
           </span>
-        </div>
+        </Link>
 
-        <div className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors cursor-not-allowed opacity-60">
+        <div className="border border-border rounded-lg p-6 opacity-60 cursor-not-allowed">
           <h2 className="font-semibold text-lg mb-1">🔮 Match Predictor</h2>
           <p className="text-sm text-muted-foreground mb-3">
             Pick the winner of every knockout match before kickoff.
@@ -50,7 +81,7 @@ async function Dashboard() {
           </span>
         </div>
 
-        <div className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors cursor-not-allowed opacity-60">
+        <div className="border border-border rounded-lg p-6 opacity-60 cursor-not-allowed">
           <h2 className="font-semibold text-lg mb-1">🏆 Leaderboard</h2>
           <p className="text-sm text-muted-foreground mb-3">
             See how you stack up against your colleagues.
@@ -60,7 +91,10 @@ async function Dashboard() {
           </span>
         </div>
 
-        <Link href="/bracket" className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block">
+        <Link
+          href="/bracket"
+          className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
+        >
           <h2 className="font-semibold text-lg mb-1">📋 Bracket</h2>
           <p className="text-sm text-muted-foreground mb-3">
             Follow the full knockout bracket as the tournament unfolds.
@@ -72,7 +106,10 @@ async function Dashboard() {
       </div>
 
       {profile?.is_admin && (
-        <Link href="/admin" className="block border border-border rounded-lg p-6 bg-muted/30 hover:bg-muted/50 transition-colors">
+        <Link
+          href="/admin"
+          className="block border border-border rounded-lg p-6 bg-muted/30 hover:bg-muted/50 transition-colors"
+        >
           <h2 className="font-semibold text-lg mb-1">⚙️ Admin</h2>
           <p className="text-sm text-muted-foreground">
             Manage employees, enter match results, and recalculate scores.
@@ -92,8 +129,17 @@ function NavBar() {
       <div className="max-w-5xl mx-auto flex justify-between items-center p-4 px-5">
         <span className="font-bold text-lg">⚽ Campo Caribe WC2026</span>
         <div className="flex items-center gap-4">
-          <Link href="/bracket" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link
+            href="/bracket"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             Bracket
+          </Link>
+          <Link
+            href="/ride-or-die"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Ride or Die
           </Link>
           <LogoutButton />
         </div>
@@ -106,12 +152,14 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center bg-background">
       <NavBar />
-      <Suspense fallback={
-        <div className="flex-1 w-full max-w-5xl p-6">
-          <div className="h-8 w-64 bg-muted rounded animate-pulse mb-2" />
-          <div className="h-4 w-48 bg-muted rounded animate-pulse" />
-        </div>
-      }>
+      <Suspense
+        fallback={
+          <div className="flex-1 w-full max-w-5xl p-6">
+            <div className="h-8 w-64 bg-muted rounded animate-pulse mb-2" />
+            <div className="h-4 w-48 bg-muted rounded animate-pulse" />
+          </div>
+        }
+      >
         <Dashboard />
       </Suspense>
     </main>

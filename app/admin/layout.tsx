@@ -52,6 +52,12 @@ export default function AdminLayout({
             >
               Matches
             </Link>
+            <Link
+              href="/admin/settings"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Settings
+            </Link>
           </div>
 
           <div className="ml-auto">
