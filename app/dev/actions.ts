@@ -12,6 +12,9 @@ import {
 export async function seedTestData(): Promise<{ error?: string; count?: number }> {
   const admin = createAdminClient();
 
+  // Ensure R32 matches have teams so we can create match_picks
+  await ensureR32TeamsAssigned();
+
   const [teamsRes, matchesRes] = await Promise.all([
     admin.from("teams").select("id"),
     admin
@@ -81,8 +84,51 @@ export async function seedTestData(): Promise<{ error?: string; count?: number }
   return { count };
 }
 
+// Randomly assign teams from the 48-team pool to R32 matches that are missing teams.
+// Each team is used at most once. Safe to run multiple times (skips already-set matches).
+async function ensureR32TeamsAssigned(): Promise<{ error?: string }> {
+  const admin = createAdminClient();
+
+  const { data: r32 } = await admin
+    .from("matches")
+    .select("id, team_home_id, team_away_id")
+    .eq("round", "R32")
+    .order("kickoff_time");
+
+  const unset = (r32 ?? []).filter((m) => !m.team_home_id || !m.team_away_id);
+  if (!unset.length) return {};
+
+  const { data: teams } = await admin.from("teams").select("id");
+  if (!teams?.length) return { error: "No teams found." };
+
+  // Shuffle teams
+  const pool = [...teams].sort(() => Math.random() - 0.5).map((t) => t.id);
+
+  // Slots already used by set matches
+  const usedIds = new Set(
+    (r32 ?? [])
+      .flatMap((m) => [m.team_home_id, m.team_away_id])
+      .filter(Boolean) as string[]
+  );
+  const available = pool.filter((id) => !usedIds.has(id));
+
+  let idx = 0;
+  for (const m of unset) {
+    if (idx + 1 >= available.length) break;
+    const home = available[idx++];
+    const away = available[idx++];
+    await admin.from("matches").update({ team_home_id: home, team_away_id: away }).eq("id", m.id);
+  }
+
+  return {};
+}
+
 export async function seedTestResults(): Promise<{ error?: string }> {
   const admin = createAdminClient();
+
+  // Assign teams to any unset R32 matches first
+  const assignErr = await ensureR32TeamsAssigned();
+  if (assignErr.error) return assignErr;
 
   const { data: matches } = await admin
     .from("matches")
@@ -93,7 +139,7 @@ export async function seedTestResults(): Promise<{ error?: string }> {
     .order("kickoff_time")
     .limit(8);
 
-  if (!matches?.length) return { error: "No R32 matches with teams found." };
+  if (!matches?.length) return { error: "No R32 matches found." };
 
   for (const m of matches) {
     if (!m.team_home_id || !m.team_away_id) continue;
@@ -139,6 +185,8 @@ export async function teardownTestData(): Promise<{ error?: string }> {
 
   await admin.from("approved_employees").delete().eq("is_test", true);
   await admin.from("matches").update({
+    team_home_id: null,
+    team_away_id: null,
     winner_team_id: null,
     home_score: null,
     away_score: null,
