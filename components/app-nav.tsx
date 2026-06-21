@@ -12,6 +12,12 @@ export function AppNav() {
           <Link href="/bracket" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Bracket
           </Link>
+          <Link href="/ride-or-die" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Ride or Die
+          </Link>
+          <Link href="/predictor" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Predictor
+          </Link>
           <LogoutButton />
         </div>
       </div>

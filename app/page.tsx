@@ -8,6 +8,8 @@ type RodPick = {
   team: { name: string; flag_emoji: string; is_top_20: boolean } | null;
 } | null;
 
+type PickStats = { made: number; of: number };
+
 async function Dashboard() {
   const supabase = await createClient();
   const {
@@ -15,21 +17,35 @@ async function Dashboard() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
 
-  const [profileResult, rodPickResult] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("full_name, is_admin")
-      .eq("id", user.id)
-      .single(),
-    supabase
-      .from("ride_or_die_picks")
-      .select("team:team_id(name, flag_emoji, is_top_20)")
-      .eq("user_id", user.id)
-      .maybeSingle(),
-  ]);
+  const [profileResult, rodPickResult, pickCountResult, pickableResult] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("full_name, is_admin")
+        .eq("id", user.id)
+        .single(),
+      supabase
+        .from("ride_or_die_picks")
+        .select("team:team_id(name, flag_emoji, is_top_20)")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+      supabase
+        .from("match_picks")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id),
+      supabase
+        .from("matches")
+        .select("id", { count: "exact", head: true })
+        .not("team_home_id", "is", null)
+        .not("team_away_id", "is", null),
+    ]);
 
   const profile = profileResult.data;
   const rodPick = rodPickResult.data as RodPick;
+  const pickStats: PickStats = {
+    made: pickCountResult.count ?? 0,
+    of: pickableResult.count ?? 0,
+  };
 
   return (
     <div className="flex-1 w-full max-w-5xl p-6 flex flex-col gap-8">
@@ -71,15 +87,20 @@ async function Dashboard() {
           </span>
         </Link>
 
-        <div className="border border-border rounded-lg p-6 opacity-60 cursor-not-allowed">
-          <h2 className="font-semibold text-lg mb-1">🔮 Match Predictor</h2>
+        <Link
+          href="/predictor"
+          className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
+        >
+          <h2 className="font-semibold text-lg mb-2">🔮 Match Predictor</h2>
           <p className="text-sm text-muted-foreground mb-3">
             Pick the winner of every knockout match before kickoff.
           </p>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
-            Coming soon
-          </span>
-        </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+              {pickStats.of > 0 ? `${pickStats.made} of ${pickStats.of} picks →` : "View matches →"}
+            </span>
+          </div>
+        </Link>
 
         <div className="border border-border rounded-lg p-6 opacity-60 cursor-not-allowed">
           <h2 className="font-semibold text-lg mb-1">🏆 Leaderboard</h2>
@@ -140,6 +161,12 @@ function NavBar() {
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             Ride or Die
+          </Link>
+          <Link
+            href="/predictor"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Predictor
           </Link>
           <LogoutButton />
         </div>

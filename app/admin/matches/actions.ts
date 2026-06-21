@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { recalculateMatchAffectedUsers } from "@/lib/scoring";
 
 export async function updateMatchTeams(
   matchId: string,
@@ -31,8 +32,16 @@ export async function enterMatchResult(
   const admin = createAdminClient();
   const { error } = await admin.from("matches").update(data).eq("id", matchId);
   if (error) return { error: error.message };
+
+  if (data.status === "completed") {
+    const scoreResult = await recalculateMatchAffectedUsers(matchId);
+    if (scoreResult.error) return { error: `Saved, but scoring failed: ${scoreResult.error}` };
+  }
+
   revalidatePath("/admin/matches");
   revalidatePath("/bracket");
+  revalidatePath("/predictor");
+  revalidatePath("/");
   return {};
 }
 
@@ -50,7 +59,13 @@ export async function resetMatchResult(
     })
     .eq("id", matchId);
   if (error) return { error: error.message };
+
+  // Re-score affected users so this match's points are removed
+  await recalculateMatchAffectedUsers(matchId);
+
   revalidatePath("/admin/matches");
   revalidatePath("/bracket");
+  revalidatePath("/predictor");
+  revalidatePath("/");
   return {};
 }
