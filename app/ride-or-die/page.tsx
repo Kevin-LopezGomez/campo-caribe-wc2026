@@ -18,7 +18,7 @@ async function RideOrDieData() {
 
   const admin = createAdminClient();
 
-  const [teamsResult, pickResult, settingResult] = await Promise.all([
+  const [teamsResult, pickResult, settingResult, r32Result] = await Promise.all([
     supabase
       .from("teams")
       .select("*")
@@ -33,10 +33,26 @@ async function RideOrDieData() {
       .select("value")
       .eq("key", "ride_or_die_lock_time")
       .maybeSingle(),
+    supabase
+      .from("matches")
+      .select("team_home_id, team_away_id")
+      .eq("round", "R32"),
   ]);
 
   const lockTime = (settingResult.data?.value as string | null) ?? null;
   const isLocked = lockTime ? new Date(lockTime) <= new Date() : false;
+
+  // Collect teams assigned to R32 bracket slots. If none are set yet (bracket
+  // not filled in), fall back to showing all 48 teams.
+  const r32TeamIds = new Set<string>();
+  for (const m of r32Result.data ?? []) {
+    if (m.team_home_id) r32TeamIds.add(m.team_home_id);
+    if (m.team_away_id) r32TeamIds.add(m.team_away_id);
+  }
+  const allTeams = (teamsResult.data ?? []) as Team[];
+  const eligibleTeams = r32TeamIds.size > 0
+    ? allTeams.filter((t) => r32TeamIds.has(t.id))
+    : allTeams;
 
   // After lock: fetch all picks to show counts per team (admin bypasses RLS)
   let pickCounts: Record<string, number> = {};
@@ -51,7 +67,7 @@ async function RideOrDieData() {
 
   return (
     <RideOrDieClient
-      teams={(teamsResult.data ?? []) as Team[]}
+      teams={eligibleTeams}
       currentPick={(pickResult.data as unknown as CurrentPick) ?? null}
       lockTime={lockTime}
       isLocked={isLocked}
