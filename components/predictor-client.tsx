@@ -98,7 +98,8 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const isPastKickoff = new Date(match.kickoff_time) <= new Date();
+  // Locked when status is no longer 'scheduled' OR kickoff has passed (whichever comes first)
+  const isLocked = match.status !== "scheduled" || new Date(match.kickoff_time) <= new Date();
   const isCompleted = match.status === "completed";
   const hasBothTeams = !!(match.team_home && match.team_away);
 
@@ -108,13 +109,13 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
       : null;
 
   function handleSelect(teamId: string) {
-    if (isPastKickoff) return;
+    if (isLocked) return;
     setSelectedId(teamId);
     setMsg(null);
   }
 
   function handleSubmit() {
-    if (!selectedId || isPastKickoff) return;
+    if (!selectedId || isLocked) return;
     setMsg(null);
     startTransition(async () => {
       const result = await saveMatchPick(
@@ -155,7 +156,7 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
       className={`border rounded-lg p-4 ${
         isCompleted
           ? "border-border"
-          : isPastKickoff
+          : isLocked
           ? "border-amber-500/50"
           : "border-border"
       }`}
@@ -170,7 +171,7 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
             LIVE
           </span>
         )}
-        {isPastKickoff && match.status !== "live" && !isCompleted && (
+        {isLocked && match.status !== "live" && !isCompleted && (
           <span className="text-xs text-amber-600 font-medium">Kicked off</span>
         )}
       </div>
@@ -221,8 +222,8 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
         </div>
       )}
 
-      {/* Before kickoff: pick form */}
-      {!isPastKickoff && (
+      {/* Before lock: pick form */}
+      {!isLocked && (
         <div className="space-y-3">
           <div className="flex gap-2">
             <button
@@ -299,8 +300,8 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
         </div>
       )}
 
-      {/* After kickoff, not completed: show my pick read-only */}
-      {isPastKickoff && !isCompleted && (
+      {/* After lock, not completed: show my pick read-only */}
+      {isLocked && !isCompleted && (
         <div className="text-sm">
           {match.myPick ? (
             <p>
@@ -319,8 +320,8 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
         </div>
       )}
 
-      {/* Pick counts (after kickoff for any state) */}
-      {isPastKickoff && match.pickCounts && (
+      {/* Pick counts (after lock for any state) */}
+      {isLocked && match.pickCounts && (
         <PickCounts
           counts={match.pickCounts}
           homeId={home.id}

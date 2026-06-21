@@ -16,17 +16,19 @@ export async function saveMatchPick(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated." };
 
-  // Server-side time check
+  // Server-side lock check — status takes priority over clock time
   const admin = createAdminClient();
   const { data: match } = await admin
     .from("matches")
-    .select("kickoff_time, team_home_id, team_away_id")
+    .select("kickoff_time, status, team_home_id, team_away_id")
     .eq("id", matchId)
     .single();
 
   if (!match) return { error: "Match not found." };
   if (!match.team_home_id || !match.team_away_id)
     return { error: "Teams not set yet." };
+  if (match.status !== "scheduled")
+    return { error: "Pick deadline has passed. Match has already started or finished." };
   if (new Date(match.kickoff_time) <= new Date())
     return { error: "Pick deadline has passed. Match has kicked off." };
   if (winnerId !== match.team_home_id && winnerId !== match.team_away_id)
