@@ -29,9 +29,10 @@ function parseCsvLine(line: string): string[] {
 
 /**
  * Bulk-import employees from CSV text. Expected columns (order-independent,
- * case-insensitive header): employee_id, full_name, access_key, is_admin
+ * case-insensitive header): employee_id, full_name, access_key, role
  *
- * is_admin is optional — omitting the column defaults every row to false.
+ * role is optional — omitting it or leaving it blank defaults to 'user'.
+ * Valid values: user, admin, dev.
  * Rows whose employee_id already exists in approved_employees are skipped.
  */
 export async function importEmployeesFromCsv(
@@ -53,7 +54,6 @@ export async function importEmployeesFromCsv(
     employee_id: headers.indexOf("employee_id"),
     full_name: headers.indexOf("full_name"),
     access_key: headers.indexOf("access_key"),
-    is_admin: headers.indexOf("is_admin"),
     role: headers.indexOf("role"),
   };
 
@@ -67,22 +67,13 @@ export async function importEmployeesFromCsv(
     .slice(1)
     .map((line) => {
       const cells = parseCsvLine(line);
-      const isAdmin =
-        col.is_admin !== -1
-          ? cells[col.is_admin]?.toLowerCase() === "true"
-          : false;
       const rawRole = col.role !== -1 ? cells[col.role]?.toLowerCase() : null;
       const role: "user" | "admin" | "dev" =
-        rawRole === "admin" || rawRole === "dev"
-          ? rawRole
-          : isAdmin
-          ? "admin"
-          : "user";
+        rawRole === "admin" || rawRole === "dev" ? rawRole : "user";
       return {
         employee_id: cells[col.employee_id] ?? "",
         full_name: cells[col.full_name] ?? "",
         access_key: cells[col.access_key] ?? "",
-        is_admin: isAdmin,
         role,
       };
     })

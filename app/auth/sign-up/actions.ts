@@ -16,7 +16,7 @@ export async function signUp(
   // Validate against the HR allowlist
   const { data: employee, error: lookupError } = await admin
     .from("approved_employees")
-    .select("employee_id, full_name, access_key, is_admin, role, is_registered")
+    .select("employee_id, full_name, access_key, role, is_registered")
     .eq("employee_id", employeeId)
     .single();
 
@@ -44,8 +44,7 @@ export async function signUp(
     user_metadata: {
       employee_id: employeeId,
       full_name: employee.full_name,
-      is_admin: employee.is_admin,
-      role: employee.role ?? (employee.is_admin ? "admin" : "user"),
+      role: employee.role ?? "user",
     },
   });
 

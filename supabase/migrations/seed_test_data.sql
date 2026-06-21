@@ -56,8 +56,8 @@ BEGIN
     ) ON CONFLICT DO NOTHING;
 
     -- profiles: trigger creates it, but ensure is_test=true and correct id
-    INSERT INTO public.profiles (id, employee_id, full_name, is_admin, role, is_test)
-    VALUES (v_id, v_employee_id, v_full_name, false, 'user', true)
+    INSERT INTO public.profiles (id, employee_id, full_name, role, is_test)
+    VALUES (v_id, v_employee_id, v_full_name, 'user', true)
     ON CONFLICT (id) DO UPDATE SET is_test = true;
 
     -- random ride_or_die_pick

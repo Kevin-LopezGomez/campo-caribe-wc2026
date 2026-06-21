@@ -19,7 +19,6 @@ export interface Database {
           id: string;
           employee_id: string;
           full_name: string;
-          is_admin: boolean;
           role: UserRole;
           is_test: boolean;
           created_at: string;
@@ -28,7 +27,6 @@ export interface Database {
           id: string;
           employee_id: string;
           full_name: string;
-          is_admin?: boolean;
           role?: UserRole;
           is_test?: boolean;
           created_at?: string;
@@ -37,7 +35,6 @@ export interface Database {
           id?: string;
           employee_id?: string;
           full_name?: string;
-          is_admin?: boolean;
           role?: UserRole;
           is_test?: boolean;
           created_at?: string;
@@ -50,7 +47,6 @@ export interface Database {
           employee_id: string;
           full_name: string;
           access_key: string;
-          is_admin: boolean;
           role: UserRole;
           is_test: boolean;
           is_registered: boolean;
@@ -63,7 +59,6 @@ export interface Database {
           employee_id: string;
           full_name: string;
           access_key: string;
-          is_admin?: boolean;
           role?: UserRole;
           is_test?: boolean;
           is_registered?: boolean;
@@ -76,7 +71,6 @@ export interface Database {
           employee_id?: string;
           full_name?: string;
           access_key?: string;
-          is_admin?: boolean;
           role?: UserRole;
           is_test?: boolean;
           is_registered?: boolean;
