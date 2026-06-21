@@ -18,7 +18,7 @@ async function EmployeesData() {
     );
   }
 
-  return <AdminEmployeesClient employees={(employees ?? []) as EmployeeRow[]} />;
+  return <AdminEmployeesClient employees={(employees ?? []) as unknown as EmployeeRow[]} />;
 }
 
 function EmployeesSkeleton() {

@@ -13,8 +13,21 @@ export async function signUp(
 
   const admin = createAdminClient();
 
+  type EmployeeRecord = {
+    employee_id: string;
+    full_name: string;
+    access_key: string;
+    role: string | null;
+    is_registered: boolean;
+    job_title: string | null;
+    home_department: string | null;
+    division: string | null;
+  };
+
   // Validate against the HR allowlist — ilike so casing in HR's spreadsheet doesn't matter
-  const { data: employee, error: lookupError } = await admin
+  // Cast through unknown: new columns (job_title etc.) added by migration 010 aren't in
+  // the generated TS types until the schema is regenerated after migration runs.
+  const { data: employeeRaw, error: lookupError } = await admin
     .from("approved_employees")
     .select("employee_id, full_name, access_key, role, is_registered, job_title, home_department, division")
     .ilike("employee_id", employeeId)
@@ -23,9 +36,11 @@ export async function signUp(
   if (lookupError) {
     return { error: `Database error: ${lookupError.message}` };
   }
-  if (!employee) {
+  if (!employeeRaw) {
     return { error: "Employee ID not found. Contact HR if you believe this is an error." };
   }
+
+  const employee = employeeRaw as unknown as EmployeeRecord;
 
   if (employee.access_key !== accessKey) {
     return { error: "Invalid access key. Contact HR to retrieve your access key." };
