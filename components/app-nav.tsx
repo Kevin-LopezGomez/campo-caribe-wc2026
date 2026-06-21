@@ -18,6 +18,9 @@ export function AppNav() {
           <Link href="/predictor" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Predictor
           </Link>
+          <Link href="/leaderboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            Leaderboard
+          </Link>
           <LogoutButton />
         </div>
       </div>

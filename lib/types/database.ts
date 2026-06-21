@@ -9,6 +9,7 @@ export type Json =
 // ---- Domain enums (defined first so they can be used in the Database type) ----
 export type Round = "R32" | "R16" | "QF" | "SF" | "F";
 export type MatchStatus = "scheduled" | "live" | "completed";
+export type UserRole = "user" | "admin" | "dev";
 
 export interface Database {
   public: {
@@ -19,6 +20,8 @@ export interface Database {
           employee_id: string;
           full_name: string;
           is_admin: boolean;
+          role: UserRole;
+          is_test: boolean;
           created_at: string;
         };
         Insert: {
@@ -26,6 +29,8 @@ export interface Database {
           employee_id: string;
           full_name: string;
           is_admin?: boolean;
+          role?: UserRole;
+          is_test?: boolean;
           created_at?: string;
         };
         Update: {
@@ -33,6 +38,8 @@ export interface Database {
           employee_id?: string;
           full_name?: string;
           is_admin?: boolean;
+          role?: UserRole;
+          is_test?: boolean;
           created_at?: string;
         };
         Relationships: [];
@@ -44,6 +51,8 @@ export interface Database {
           full_name: string;
           access_key: string;
           is_admin: boolean;
+          role: UserRole;
+          is_test: boolean;
           is_registered: boolean;
           registered_at: string | null;
           added_at: string;
@@ -55,6 +64,8 @@ export interface Database {
           full_name: string;
           access_key: string;
           is_admin?: boolean;
+          role?: UserRole;
+          is_test?: boolean;
           is_registered?: boolean;
           registered_at?: string | null;
           added_at?: string;
@@ -66,6 +77,8 @@ export interface Database {
           full_name?: string;
           access_key?: string;
           is_admin?: boolean;
+          role?: UserRole;
+          is_test?: boolean;
           is_registered?: boolean;
           registered_at?: string | null;
           added_at?: string;
@@ -262,6 +275,8 @@ export interface Database {
           user_id: string;
           full_name: string;
           employee_id: string;
+          role: UserRole;
+          is_test: boolean;
           total_points: number;
         }[];
       };
@@ -290,6 +305,8 @@ export type LeaderboardEntry = {
   user_id: string;
   full_name: string;
   employee_id: string;
+  role: UserRole;
+  is_test: boolean;
   total_points: number;
 };
 

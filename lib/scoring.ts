@@ -21,19 +21,21 @@ const ROD_POINTS: Record<Round, number> = {
 const EXACT_SCORE_BONUS = 2;
 const LOYALTY_BONUS = 10;
 
-export async function recalculateUserScore(
+export type ScoringEvent = {
+  user_id: string;
+  points: number;
+  reason: string;
+  match_id?: string;
+  team_id?: string;
+};
+
+// Compute what a user's score events SHOULD be based on current match results.
+// Does NOT write to the database.
+export async function computeUserScore(
   userId: string
-): Promise<{ error?: string }> {
+): Promise<{ events: ScoringEvent[]; total: number; error?: string }> {
   const admin = createAdminClient();
 
-  // 1. Wipe existing score events (idempotent ledger)
-  const { error: delErr } = await admin
-    .from("score_events")
-    .delete()
-    .eq("user_id", userId);
-  if (delErr) return { error: delErr.message };
-
-  // 2. User's Ride or Die pick
   const { data: rodRow } = await admin
     .from("ride_or_die_picks")
     .select("team_id, team:team_id(is_top_20)")
@@ -45,19 +47,18 @@ export async function recalculateUserScore(
     ? !(rodRow.team as unknown as { is_top_20: boolean }).is_top_20
     : false;
 
-  // 3. All completed matches
-  const { data: done } = await admin
+  const { data: done, error: matchErr } = await admin
     .from("matches")
     .select(
       "id, round, team_home_id, team_away_id, winner_team_id, home_score, away_score"
     )
     .eq("status", "completed");
 
-  if (!done?.length) return {};
+  if (matchErr) return { events: [], total: 0, error: matchErr.message };
+  if (!done?.length) return { events: [], total: 0 };
 
   const doneIds = done.map((m) => m.id);
 
-  // 4. User's picks on those matches
   const { data: userPicks } = await admin
     .from("match_picks")
     .select(
@@ -70,16 +71,8 @@ export async function recalculateUserScore(
     (userPicks ?? []).map((p) => [p.match_id, p])
   );
 
-  type Event = {
-    user_id: string;
-    points: number;
-    reason: string;
-    match_id?: string;
-    team_id?: string;
-  };
-  const events: Event[] = [];
+  const events: ScoringEvent[] = [];
 
-  // 5. Match pick scoring
   for (const m of done) {
     const pick = pickByMatch.get(m.id);
     if (!pick || !m.winner_team_id) continue;
@@ -109,7 +102,6 @@ export async function recalculateUserScore(
     }
   }
 
-  // 6. Ride or Die scoring
   if (rodTeamId) {
     const rodMatches = done.filter(
       (m) => m.team_home_id === rodTeamId || m.team_away_id === rodTeamId
@@ -129,7 +121,6 @@ export async function recalculateUserScore(
       }
     }
 
-    // 7. Loyalty bonus — only after Final is completed
     const finalDone = done.some((m) => m.round === "F");
     if (finalDone && rodMatches.length > 0) {
       const allCorrect = rodMatches.every((m) => {
@@ -148,6 +139,25 @@ export async function recalculateUserScore(
       }
     }
   }
+
+  const total = events.reduce((s, e) => s + e.points, 0);
+  return { events, total };
+}
+
+// Delete existing score_events for userId and reinsert computed events.
+export async function recalculateUserScore(
+  userId: string
+): Promise<{ error?: string }> {
+  const admin = createAdminClient();
+
+  const { error: delErr } = await admin
+    .from("score_events")
+    .delete()
+    .eq("user_id", userId);
+  if (delErr) return { error: delErr.message };
+
+  const { events, error: compErr } = await computeUserScore(userId);
+  if (compErr) return { error: compErr };
 
   if (events.length > 0) {
     const { error: insErr } = await admin.from("score_events").insert(events);
@@ -183,7 +193,9 @@ export async function recalculateMatchAffectedUsers(
 
   const userIds = new Set<string>([
     ...(pickersResult.data ?? []).map((p) => p.user_id),
-    ...((rodPickersResult as { data: { user_id: string }[] | null }).data ?? []).map((p) => p.user_id),
+    ...((rodPickersResult as { data: { user_id: string }[] | null }).data ?? []).map(
+      (p) => p.user_id
+    ),
   ]);
 
   for (const uid of userIds) {

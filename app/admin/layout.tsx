@@ -13,10 +13,10 @@ async function AdminGuard({ children }: { children: React.ReactNode }) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("is_admin")
+    .select("role")
     .eq("id", user.id)
     .single();
-  if (!profile?.is_admin) redirect("/");
+  if (!profile || !["admin", "dev"].includes(profile.role)) redirect("/");
 
   return <>{children}</>;
 }

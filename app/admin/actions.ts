@@ -54,6 +54,7 @@ export async function importEmployeesFromCsv(
     full_name: headers.indexOf("full_name"),
     access_key: headers.indexOf("access_key"),
     is_admin: headers.indexOf("is_admin"),
+    role: headers.indexOf("role"),
   };
 
   if (col.employee_id === -1 || col.full_name === -1 || col.access_key === -1) {
@@ -66,14 +67,23 @@ export async function importEmployeesFromCsv(
     .slice(1)
     .map((line) => {
       const cells = parseCsvLine(line);
+      const isAdmin =
+        col.is_admin !== -1
+          ? cells[col.is_admin]?.toLowerCase() === "true"
+          : false;
+      const rawRole = col.role !== -1 ? cells[col.role]?.toLowerCase() : null;
+      const role: "user" | "admin" | "dev" =
+        rawRole === "admin" || rawRole === "dev"
+          ? rawRole
+          : isAdmin
+          ? "admin"
+          : "user";
       return {
         employee_id: cells[col.employee_id] ?? "",
         full_name: cells[col.full_name] ?? "",
         access_key: cells[col.access_key] ?? "",
-        is_admin:
-          col.is_admin !== -1
-            ? cells[col.is_admin]?.toLowerCase() === "true"
-            : false,
+        is_admin: isAdmin,
+        role,
       };
     })
     .filter((r) => r.employee_id && r.full_name && r.access_key);
