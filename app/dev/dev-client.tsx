@@ -212,12 +212,13 @@ function MatchViewPanel({ matches }: { matches: MatchMeta[] }) {
 // ── C: Math Validator ────────────────────────────────────────────────────────
 function MathValidatorPanel({ profiles }: { profiles: Profile[] }) {
   const [breakdown, setBreakdown] = useState<UserBreakdown | null>(null);
+  const [realOnly, setRealOnly] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   function pickRandom() {
-    const realUsers = profiles.filter((p) => !p.is_test);
-    const pool = realUsers.length ? realUsers : profiles;
-    const rand = pool[Math.floor(Math.random() * pool.length)];
+    const pool = realOnly ? profiles.filter((p) => !p.is_test) : profiles;
+    const eligible = pool.length ? pool : profiles;
+    const rand = eligible[Math.floor(Math.random() * eligible.length)];
     if (!rand) return;
     startTransition(async () => {
       const r = await getUserBreakdown(rand.id);
@@ -227,7 +228,18 @@ function MathValidatorPanel({ profiles }: { profiles: Profile[] }) {
 
   return (
     <Section title="C — Math Validator">
-      <ActionButton label="Pick random user" pendingLabel="Loading…" pending={isPending} onClick={pickRandom} />
+      <div className="flex items-center gap-3 flex-wrap">
+        <ActionButton label="Pick random user" pendingLabel="Loading…" pending={isPending} onClick={pickRandom} />
+        <label className="flex items-center gap-1.5 text-sm text-muted-foreground cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={realOnly}
+            onChange={(e) => setRealOnly(e.target.checked)}
+            className="rounded border-input"
+          />
+          Real users only
+        </label>
+      </div>
       {breakdown && (
         <div className="space-y-2 text-sm">
           <p className="font-medium">{breakdown.fullName}</p>
