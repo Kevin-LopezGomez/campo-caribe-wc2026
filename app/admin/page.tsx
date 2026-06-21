@@ -36,6 +36,16 @@ export default function AdminPage() {
             tournament controls.
           </p>
         </Link>
+
+        <Link
+          href="/admin/employees"
+          className="block border border-border rounded-lg p-6 hover:bg-muted/40 transition-colors"
+        >
+          <h2 className="font-semibold text-lg mb-1">👥 Employees</h2>
+          <p className="text-sm text-muted-foreground">
+            Look up access keys and registration status.
+          </p>
+        </Link>
       </div>
     </div>
   );

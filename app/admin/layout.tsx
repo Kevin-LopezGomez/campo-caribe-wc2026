@@ -58,6 +58,12 @@ export default function AdminLayout({
             >
               Settings
             </Link>
+            <Link
+              href="/admin/employees"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Employees
+            </Link>
           </div>
 
           <div className="ml-auto">
