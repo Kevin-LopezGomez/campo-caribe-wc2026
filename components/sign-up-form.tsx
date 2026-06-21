@@ -47,7 +47,8 @@ export function SignUpForm({
     }
 
     try {
-      const result = await signUp(employeeId.trim(), accessKey.trim(), password);
+      const cleanEmployeeId = employeeId.trim().toUpperCase().replace(/-/g, "");
+      const result = await signUp(cleanEmployeeId, accessKey.trim(), password);
 
       if (result.error) {
         setError(result.error);
@@ -57,7 +58,7 @@ export function SignUpForm({
       // Account created — sign in immediately
       const supabase = createClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: `${employeeId.trim()}@campocaribe.internal`,
+        email: `${cleanEmployeeId}@campocaribe.internal`,
         password,
       });
 
@@ -91,10 +92,12 @@ export function SignUpForm({
                 <Label htmlFor="employeeId">Employee ID</Label>
                 <Input
                   id="employeeId"
-                  placeholder="e.g. CC-001"
+                  placeholder="e.g. CC001"
                   required
+                  autoCapitalize="characters"
+                  autoComplete="off"
                   value={employeeId}
-                  onChange={(e) => setEmployeeId(e.target.value)}
+                  onChange={(e) => setEmployeeId(e.target.value.toUpperCase())}
                 />
               </div>
               <div className="grid gap-2">
@@ -104,6 +107,7 @@ export function SignUpForm({
                   placeholder="6-digit code from HR"
                   required
                   maxLength={6}
+                  inputMode="numeric"
                   value={accessKey}
                   onChange={(e) => setAccessKey(e.target.value)}
                 />

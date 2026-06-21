@@ -13,12 +13,12 @@ export async function signUp(
 
   const admin = createAdminClient();
 
-  // Validate against the HR allowlist
+  // Validate against the HR allowlist — ilike so casing in HR's spreadsheet doesn't matter
   const { data: employee, error: lookupError } = await admin
     .from("approved_employees")
     .select("employee_id, full_name, access_key, role, is_registered")
-    .eq("employee_id", employeeId)
-    .single();
+    .ilike("employee_id", employeeId)
+    .maybeSingle();
 
   if (lookupError) {
     return { error: `Database error: ${lookupError.message}` };
@@ -35,14 +35,17 @@ export async function signUp(
     return { error: "This employee ID is already registered. Log in or reset your password." };
   }
 
+  // Canonical ID: always uppercase, matches what we'll use for the email address
+  const canonicalId = employee.employee_id.toUpperCase();
+
   // Create the auth user. email_confirm: true skips the verification email.
   // The handle_new_user trigger will create the profile row automatically.
   const { data: authData, error: createError } = await admin.auth.admin.createUser({
-    email: `${employeeId}@campocaribe.internal`,
+    email: `${canonicalId}@campocaribe.internal`,
     password,
     email_confirm: true,
     user_metadata: {
-      employee_id: employeeId,
+      employee_id: canonicalId,
       full_name: employee.full_name,
       role: employee.role ?? "user",
     },
@@ -52,14 +55,14 @@ export async function signUp(
     return { error: createError?.message ?? "Failed to create account. Please try again." };
   }
 
-  // Mark the employee as registered so the access key can't be reused for signup
+  // Match on the actual DB value so the update always hits the row, regardless of casing
   const { error: updateError } = await admin
     .from("approved_employees")
     .update({
       is_registered: true,
       registered_at: new Date().toISOString(),
     })
-    .eq("employee_id", employeeId);
+    .eq("employee_id", employee.employee_id);
 
   if (updateError) {
     console.error("Failed to mark employee as registered:", updateError.message);

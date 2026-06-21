@@ -9,12 +9,12 @@ export async function resetPassword(
 ): Promise<{ error?: string }> {
   const admin = createAdminClient();
 
-  // Validate the HR-issued access key (works even after initial registration)
+  // Validate the HR-issued access key — ilike so casing in HR's spreadsheet doesn't matter
   const { data: employee, error: lookupError } = await admin
     .from("approved_employees")
     .select("employee_id, access_key, is_registered")
-    .eq("employee_id", employeeId)
-    .single();
+    .ilike("employee_id", employeeId)
+    .maybeSingle();
 
   if (lookupError || !employee) {
     return { error: "Employee ID not found." };
@@ -28,12 +28,12 @@ export async function resetPassword(
     return { error: "No account found for this employee ID. Please sign up first." };
   }
 
-  // Look up the auth user ID via the profiles table
+  // Look up the auth user ID via the profiles table — ilike for same casing tolerance
   const { data: profile, error: profileError } = await admin
     .from("profiles")
     .select("id")
-    .eq("employee_id", employeeId)
-    .single();
+    .ilike("employee_id", employeeId)
+    .maybeSingle();
 
   if (profileError || !profile) {
     return { error: "Account not found. Please contact HR." };

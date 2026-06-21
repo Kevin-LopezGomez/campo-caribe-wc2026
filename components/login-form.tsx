@@ -35,8 +35,9 @@ export function LoginForm({
     setError(null);
 
     try {
+      const cleanEmployeeId = employeeId.trim().toUpperCase().replace(/-/g, "");
       const { error } = await supabase.auth.signInWithPassword({
-        email: `${employeeId.trim()}@campocaribe.internal`,
+        email: `${cleanEmployeeId}@campocaribe.internal`,
         password,
       });
       if (error) throw error;
@@ -66,10 +67,12 @@ export function LoginForm({
                 <Label htmlFor="employeeId">Employee ID</Label>
                 <Input
                   id="employeeId"
-                  placeholder="e.g. CC-001"
+                  placeholder="e.g. CC001"
                   required
+                  autoCapitalize="characters"
+                  autoComplete="off"
                   value={employeeId}
-                  onChange={(e) => setEmployeeId(e.target.value)}
+                  onChange={(e) => setEmployeeId(e.target.value.toUpperCase())}
                 />
               </div>
               <div className="grid gap-2">

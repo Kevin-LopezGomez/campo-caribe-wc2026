@@ -47,8 +47,9 @@ export function ForgotPasswordForm({
     }
 
     try {
+      const cleanEmployeeId = employeeId.trim().toUpperCase().replace(/-/g, "");
       const result = await resetPassword(
-        employeeId.trim(),
+        cleanEmployeeId,
         accessKey.trim(),
         newPassword
       );
@@ -61,7 +62,7 @@ export function ForgotPasswordForm({
       // Auto-login after successful reset
       const supabase = createClient();
       await supabase.auth.signInWithPassword({
-        email: `${employeeId.trim()}@campocaribe.internal`,
+        email: `${cleanEmployeeId}@campocaribe.internal`,
         password: newPassword,
       });
 
@@ -89,10 +90,12 @@ export function ForgotPasswordForm({
                 <Label htmlFor="employeeId">Employee ID</Label>
                 <Input
                   id="employeeId"
-                  placeholder="e.g. CC-001"
+                  placeholder="e.g. CC001"
                   required
+                  autoCapitalize="characters"
+                  autoComplete="off"
                   value={employeeId}
-                  onChange={(e) => setEmployeeId(e.target.value)}
+                  onChange={(e) => setEmployeeId(e.target.value.toUpperCase())}
                 />
               </div>
               <div className="grid gap-2">
@@ -102,6 +105,7 @@ export function ForgotPasswordForm({
                   placeholder="New 6-digit code from HR"
                   required
                   maxLength={6}
+                  inputMode="numeric"
                   value={accessKey}
                   onChange={(e) => setAccessKey(e.target.value)}
                 />
