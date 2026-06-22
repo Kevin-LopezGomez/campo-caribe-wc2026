@@ -266,18 +266,18 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
 
   return (
     <div>
-      {/* Tab bar — short labels, auto-scrolls active tab into center */}
-      <div ref={tabBarRef} className="flex overflow-x-auto border-b border-border mb-5">
+      {/* Tab bar — pill/chip style, auto-scrolls active tab into center */}
+      <div ref={tabBarRef} className="flex overflow-x-auto gap-2 mb-5 pb-1">
         {ROUNDS.map((r) => (
           <button
             key={r}
             ref={(el) => { tabRefs.current[r] = el; }}
             onClick={() => setActiveRound(r)}
             className={[
-              "shrink-0 pb-3 pt-1 px-3 text-sm whitespace-nowrap border-b-2 -mb-px transition-colors",
+              "shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm transition-colors",
               r === activeRound
-                ? "border-primary text-foreground font-semibold"
-                : "border-transparent text-muted-foreground hover:text-foreground",
+                ? "bg-primary text-primary-foreground font-semibold"
+                : "bg-muted text-muted-foreground hover:text-foreground",
             ].join(" ")}
           >
             {ROUND_SHORT[r]}
