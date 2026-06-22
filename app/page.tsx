@@ -60,7 +60,7 @@ async function Dashboard() {
     <div className="flex-1 w-full max-w-5xl p-6 flex flex-col gap-8">
       <div>
         <h1 className="text-3xl font-bold">
-          Welcome, {profile?.full_name?.split(" ")[0] ?? "there"} 👋
+          Welcome, {profile?.full_name?.split(", ")[1] ?? "there"} 👋
         </h1>
         <p className="text-muted-foreground mt-1">
           World Cup 2026 — Campo Caribe Edition
