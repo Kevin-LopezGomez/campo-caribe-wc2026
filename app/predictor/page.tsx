@@ -78,13 +78,22 @@ async function PredictorData() {
   const totalPickable = predictorMatches.filter(
     (m) => m.team_home && m.team_away
   ).length;
-  const madeCount = myPickMap.size;
+
+  const madeCount = predictorMatches.filter(
+    (m) => m.team_home && m.team_away && myPickMap.has(m.id)
+  ).length;
 
   return (
     <div className="space-y-6">
-      <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg px-4 py-2 inline-block">
-        {madeCount} of {totalPickable} picks made
-      </div>
+      {totalPickable === 0 ? (
+        <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg px-4 py-2 inline-block">
+          Picks open once group stage teams are confirmed — check back Jun 28.
+        </div>
+      ) : (
+        <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg px-4 py-2 inline-block">
+          {madeCount} of {totalPickable} picks made
+        </div>
+      )}
       <PredictorClient matches={predictorMatches} />
     </div>
   );
