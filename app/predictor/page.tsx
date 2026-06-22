@@ -85,11 +85,12 @@ async function PredictorData() {
 
   return (
     <div className="space-y-6">
-      {totalPickable === 0 ? (
-        <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg px-4 py-2 inline-block">
-          Picks open once group stage teams are confirmed — check back Jun 28.
-        </div>
-      ) : (
+      {totalPickable === 0 && (
+        <p className="text-sm text-muted-foreground">
+          Match teams will be confirmed after the group stage ends. You can still browse the schedule below.
+        </p>
+      )}
+      {totalPickable > 0 && (
         <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg px-4 py-2 inline-block">
           {madeCount} of {totalPickable} picks made
         </div>

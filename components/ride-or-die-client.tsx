@@ -198,7 +198,14 @@ export function RideOrDieClient({
               "Pick counts are now visible."}
           </>
         ) : lockTime ? (
-          <>Picks lock on <span className="font-medium text-foreground">{formatLockTime(lockTime)} AST</span>. You can change your pick any time before then. 🌟 Cinderella team — earns 2× Ride or Die points if they win.</>
+          <>
+            <span>
+              Picks lock on <span className="font-medium text-foreground">{formatLockTime(lockTime)} AST</span>. You can change your pick any time before then.
+            </span>
+            <span className="block mt-1 text-xs text-muted-foreground">
+              🌟 Cinderella team — earns 2× Ride or Die points if they advance.
+            </span>
+          </>
         ) : (
           "Lock time not yet set — check back soon."
         )}
