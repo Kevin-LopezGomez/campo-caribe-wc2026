@@ -21,7 +21,7 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
         "shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm transition-colors",
         active
           ? "bg-primary text-primary-foreground font-semibold"
-          : "bg-muted text-muted-foreground hover:text-foreground",
+          : "border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30",
       ].join(" ")}
     >
       {label}
