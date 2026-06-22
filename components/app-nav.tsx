@@ -1,8 +1,37 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { LogoutButton } from "@/components/logout-button";
 
+const NAV_LINKS = [
+  { href: "/bracket", label: "Bracket" },
+  { href: "/ride-or-die", label: "Ride or Die" },
+  { href: "/predictor", label: "Predictor" },
+  { href: "/leaderboard", label: "Leaderboard" },
+] as const;
+
+function NavLink({ href, label, pathname }: { href: string; label: string; pathname: string }) {
+  const active = pathname === href || pathname.startsWith(href + "/");
+  return (
+    <Link
+      href={href}
+      className={[
+        "shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm transition-colors",
+        active
+          ? "bg-primary text-primary-foreground font-semibold"
+          : "bg-muted text-muted-foreground hover:text-foreground",
+      ].join(" ")}
+    >
+      {label}
+    </Link>
+  );
+}
+
 export function AppNav() {
+  const pathname = usePathname();
+
   return (
     <nav className="w-full border-b border-border">
       <div className="max-w-5xl mx-auto px-5">
@@ -12,12 +41,11 @@ export function AppNav() {
             <Image src="/logo.png" alt="Campo Caribe" width={32} height={32} className="shrink-0" />
             <span className="font-bold text-lg">Campo Caribe WC2026</span>
           </Link>
-          {/* Desktop: nav links + logout inline */}
-          <div className="hidden md:flex items-center gap-4">
-            <Link href="/bracket" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Bracket</Link>
-            <Link href="/ride-or-die" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Ride or Die</Link>
-            <Link href="/predictor" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Predictor</Link>
-            <Link href="/leaderboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Leaderboard</Link>
+          {/* Desktop: pill nav links + logout inline */}
+          <div className="hidden md:flex items-center gap-2">
+            {NAV_LINKS.map(({ href, label }) => (
+              <NavLink key={href} href={href} label={label} pathname={pathname} />
+            ))}
             <LogoutButton />
           </div>
           {/* Mobile: just logout */}
@@ -25,12 +53,11 @@ export function AppNav() {
             <LogoutButton />
           </div>
         </div>
-        {/* Row 2: mobile nav links — scrollable, hidden on desktop */}
-        <div className="flex md:hidden overflow-x-auto gap-5 pb-3">
-          <Link href="/bracket" className="shrink-0 text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Bracket</Link>
-          <Link href="/ride-or-die" className="shrink-0 text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Ride or Die</Link>
-          <Link href="/predictor" className="shrink-0 text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Predictor</Link>
-          <Link href="/leaderboard" className="shrink-0 text-sm text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap">Leaderboard</Link>
+        {/* Row 2: mobile pill nav links — scrollable, hidden on desktop */}
+        <div className="flex md:hidden overflow-x-auto gap-2 pb-3">
+          {NAV_LINKS.map(({ href, label }) => (
+            <NavLink key={href} href={href} label={label} pathname={pathname} />
+          ))}
         </div>
       </div>
     </nav>

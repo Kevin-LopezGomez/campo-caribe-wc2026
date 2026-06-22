@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { LogoutButton } from "@/components/logout-button";
+import { AppNav } from "@/components/app-nav";
 import type { UserRole } from "@/lib/types/database";
 
 type RodPick = {
@@ -191,47 +191,10 @@ async function Dashboard() {
   );
 }
 
-function NavBar() {
-  return (
-    <nav className="w-full border-b border-border">
-      <div className="max-w-5xl mx-auto flex justify-between items-center p-4 px-5">
-        <span className="font-bold text-lg">⚽ Campo Caribe WC2026</span>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/bracket"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Bracket
-          </Link>
-          <Link
-            href="/ride-or-die"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Ride or Die
-          </Link>
-          <Link
-            href="/predictor"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Predictor
-          </Link>
-          <Link
-            href="/leaderboard"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Leaderboard
-          </Link>
-          <LogoutButton />
-        </div>
-      </div>
-    </nav>
-  );
-}
-
 export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center bg-background">
-      <NavBar />
+      <AppNav />
       <Suspense
         fallback={
           <div className="flex-1 w-full max-w-5xl p-6">
