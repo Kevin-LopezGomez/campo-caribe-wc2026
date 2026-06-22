@@ -1,16 +1,27 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import { LogoutButton } from "@/components/logout-button";
 
-const NAV_LINKS = [
+const BASE_LINKS = [
   { href: "/bracket", label: "Bracket" },
   { href: "/ride-or-die", label: "Ride or Die" },
   { href: "/predictor", label: "Predictor" },
   { href: "/leaderboard", label: "Leaderboard" },
 ] as const;
+
+const ADMIN_LINKS = [
+  { href: "/admin/teams", label: "Teams" },
+  { href: "/admin/matches", label: "Matches" },
+  { href: "/admin/settings", label: "Settings" },
+  { href: "/admin/employees", label: "Employees" },
+] as const;
+
+const DEV_LINKS = [{ href: "/dev", label: "Dev" }] as const;
 
 function NavLink({ href, label, pathname }: { href: string; label: string; pathname: string }) {
   const active = pathname === href || pathname.startsWith(href + "/");
@@ -31,6 +42,24 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
 
 export function AppNav() {
   const pathname = usePathname();
+  const [role, setRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    createClient()
+      .auth.getSession()
+      .then(({ data: { session } }) => {
+        setRole((session?.user?.user_metadata?.role as string) ?? null);
+      });
+  }, []);
+
+  const isAdmin = role === "admin" || role === "dev";
+  const isDev = role === "dev";
+
+  const allLinks = [
+    ...BASE_LINKS,
+    ...(isAdmin ? ADMIN_LINKS : []),
+    ...(isDev ? DEV_LINKS : []),
+  ];
 
   return (
     <nav className="w-full border-b border-border">
@@ -43,7 +72,7 @@ export function AppNav() {
           </Link>
           {/* Desktop: pill nav links + logout inline */}
           <div className="hidden md:flex items-center gap-2">
-            {NAV_LINKS.map(({ href, label }) => (
+            {allLinks.map(({ href, label }) => (
               <NavLink key={href} href={href} label={label} pathname={pathname} />
             ))}
             <LogoutButton />
@@ -53,9 +82,12 @@ export function AppNav() {
             <LogoutButton />
           </div>
         </div>
-        {/* Row 2: mobile pill nav links — scrollable, hidden on desktop */}
-        <div className="flex md:hidden overflow-x-auto gap-2 pb-3">
-          {NAV_LINKS.map(({ href, label }) => (
+        {/* Row 2: mobile pill nav links — scrollable with right-side fade mask */}
+        <div
+          className="flex md:hidden overflow-x-auto gap-2 pb-3"
+          style={{ maskImage: "linear-gradient(to right, black 85%, transparent)" }}
+        >
+          {allLinks.map(({ href, label }) => (
             <NavLink key={href} href={href} label={label} pathname={pathname} />
           ))}
         </div>

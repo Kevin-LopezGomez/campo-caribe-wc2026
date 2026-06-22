@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { AdminNav } from "./admin-nav";
+import { AppNav } from "@/components/app-nav";
 
 async function AdminGuard({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -27,7 +27,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AdminNav />
+      <AppNav />
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6">
         <Suspense>
           <AdminGuard>{children}</AdminGuard>
