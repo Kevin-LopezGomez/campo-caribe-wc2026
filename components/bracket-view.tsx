@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 type TeamSnap = {
   id: string;
@@ -35,155 +34,16 @@ const ROUND_LABELS: Record<RoundKey, string> = {
   F: "Final",
 };
 
-const ROUND_SHORT: Record<RoundKey, string> = {
-  R32: "R32",
-  R16: "R16",
-  QF: "QF",
-  SF: "SF",
-  F: "Final",
-};
-
-// Each R32 slot = BASE_PX. Each subsequent round doubles.
-const BASE_PX = 56;
-const SLOT_MULTIPLIERS: Record<RoundKey, number> = {
-  R32: 1,
-  R16: 2,
-  QF: 4,
-  SF: 8,
-  F: 16,
-};
-
 function formatKickoff(iso: string) {
   return new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Puerto_Rico",
+    weekday: "short",
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
   }).format(new Date(iso));
-}
-
-function CompactMatchCard({ match }: { match: BracketMatch }) {
-  const isCompleted = match.status === "completed";
-  const isLive = match.status === "live";
-  const home = match.team_home;
-  const away = match.team_away;
-
-  const homeWon = isCompleted && match.winner_team_id === home?.id;
-  const awayWon = isCompleted && match.winner_team_id === away?.id;
-
-  return (
-    <div
-      className={`w-full rounded border bg-card text-card-foreground text-xs select-none ${
-        isLive ? "border-green-500" : "border-border"
-      }`}
-    >
-      <div
-        className={`flex items-center justify-between px-2 py-1 gap-1 min-w-0 ${
-          homeWon ? "font-bold" : ""
-        }`}
-      >
-        <span className="flex items-center gap-1 min-w-0">
-          <span>{home?.flag_emoji ?? "🏳️"}</span>
-          <span className="truncate">{home?.name ?? "TBD"}</span>
-        </span>
-        {(isCompleted || isLive) && (
-          <span className="shrink-0 tabular-nums">{match.home_score ?? "-"}</span>
-        )}
-      </div>
-
-      <div className="border-t border-border" />
-
-      <div
-        className={`flex items-center justify-between px-2 py-1 gap-1 min-w-0 ${
-          awayWon ? "font-bold" : ""
-        }`}
-      >
-        <span className="flex items-center gap-1 min-w-0">
-          <span>{away?.flag_emoji ?? "🏳️"}</span>
-          <span className="truncate">{away?.name ?? "TBD"}</span>
-        </span>
-        {(isCompleted || isLive) && (
-          <span className="shrink-0 tabular-nums">{match.away_score ?? "-"}</span>
-        )}
-      </div>
-
-      <div
-        className="border-t border-border px-2 py-0.5 flex items-center justify-between gap-1"
-        style={{ fontSize: "10px" }}
-      >
-        <span className="text-muted-foreground">
-          {formatKickoff(match.kickoff_time)} AST
-        </span>
-        {isLive && (
-          <span className="text-green-500 font-bold animate-pulse">LIVE</span>
-        )}
-        {isCompleted && (
-          <span className="text-muted-foreground">FT</span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function FullMatchCard({ match }: { match: BracketMatch }) {
-  const isCompleted = match.status === "completed";
-  const isLive = match.status === "live";
-  const home = match.team_home;
-  const away = match.team_away;
-
-  const homeWon = isCompleted && match.winner_team_id === home?.id;
-  const awayWon = isCompleted && match.winner_team_id === away?.id;
-
-  return (
-    <div
-      className={`rounded-lg border bg-card text-card-foreground ${
-        isLive ? "border-green-500" : "border-border"
-      }`}
-    >
-      <div className="px-4 py-2 flex items-center justify-between">
-        <div
-          className={`flex items-center gap-3 ${homeWon ? "font-bold" : ""}`}
-        >
-          <span className="text-2xl">{home?.flag_emoji ?? "🏳️"}</span>
-          <span className="text-sm">{home?.name ?? "TBD"}</span>
-        </div>
-        {(isCompleted || isLive) && (
-          <span className="text-xl font-bold tabular-nums">
-            {match.home_score ?? "-"}
-          </span>
-        )}
-      </div>
-
-      <div className="border-t border-border mx-4" />
-
-      <div className="px-4 py-2 flex items-center justify-between">
-        <div
-          className={`flex items-center gap-3 ${awayWon ? "font-bold" : ""}`}
-        >
-          <span className="text-2xl">{away?.flag_emoji ?? "🏳️"}</span>
-          <span className="text-sm">{away?.name ?? "TBD"}</span>
-        </div>
-        {(isCompleted || isLive) && (
-          <span className="text-xl font-bold tabular-nums">
-            {match.away_score ?? "-"}
-          </span>
-        )}
-      </div>
-
-      <div className="border-t border-border px-4 py-1.5 flex items-center justify-between text-xs text-muted-foreground">
-        <span>{formatKickoff(match.kickoff_time)} AST</span>
-        {isLive && (
-          <span className="text-green-500 font-semibold animate-pulse">
-            LIVE
-          </span>
-        )}
-        {isCompleted && <span>Full Time</span>}
-        {!isCompleted && !isLive && <span>Scheduled</span>}
-      </div>
-    </div>
-  );
 }
 
 function groupByRound(matches: BracketMatch[]) {
@@ -221,86 +81,201 @@ function getDefaultRound(byRound: Record<RoundKey, BracketMatch[]>): RoundKey {
   return "F";
 }
 
+type BracketPair = {
+  sources: BracketMatch[];
+  dest: BracketMatch | null;
+};
+
+function buildPairs(
+  currentMatches: BracketMatch[],
+  nextMatchById: Map<string, BracketMatch>
+): BracketPair[] {
+  const byNextId = new Map<string, BracketMatch[]>();
+  const noNext: BracketMatch[] = [];
+
+  for (const m of currentMatches) {
+    if (m.next_match_id) {
+      if (!byNextId.has(m.next_match_id)) byNextId.set(m.next_match_id, []);
+      byNextId.get(m.next_match_id)!.push(m);
+    } else {
+      noNext.push(m);
+    }
+  }
+
+  const pairs: BracketPair[] = [];
+
+  for (const [nextId, sources] of byNextId) {
+    sources.sort(
+      (a, b) =>
+        new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
+    );
+    pairs.push({ sources, dest: nextMatchById.get(nextId) ?? null });
+  }
+
+  pairs.sort((a, b) => {
+    const at = a.sources[0]
+      ? new Date(a.sources[0].kickoff_time).getTime()
+      : 0;
+    const bt = b.sources[0]
+      ? new Date(b.sources[0].kickoff_time).getTime()
+      : 0;
+    return at - bt;
+  });
+
+  for (const m of noNext) {
+    pairs.push({ sources: [m], dest: null });
+  }
+
+  return pairs;
+}
+
+function MatchCard({ match }: { match: BracketMatch }) {
+  const isCompleted = match.status === "completed";
+  const isLive = match.status === "live";
+  const home = match.team_home;
+  const away = match.team_away;
+  const homeWon = isCompleted && match.winner_team_id === home?.id;
+  const awayWon = isCompleted && match.winner_team_id === away?.id;
+
+  return (
+    <div
+      className={`rounded-xl border bg-card p-3 w-full ${
+        isLive ? "border-green-500/60" : "border-border/60"
+      }`}
+    >
+      <p className="text-xs text-muted-foreground mb-2.5 flex items-center gap-2">
+        <span>{formatKickoff(match.kickoff_time)} AST</span>
+        {isLive && (
+          <span className="text-green-500 font-semibold animate-pulse">
+            LIVE
+          </span>
+        )}
+        {isCompleted && <span>FT</span>}
+      </p>
+
+      <div
+        className={`flex items-center justify-between gap-1 mb-2 ${
+          homeWon ? "font-semibold" : awayWon ? "opacity-40" : ""
+        }`}
+      >
+        <span className="flex items-center gap-2 min-w-0">
+          <span className="text-xl shrink-0">{home?.flag_emoji ?? "🏳️"}</span>
+          <span className="text-sm truncate">{home?.name ?? "TBD"}</span>
+        </span>
+        {(isCompleted || isLive) && (
+          <span className="tabular-nums font-bold text-sm shrink-0">
+            {match.home_score ?? "-"}
+          </span>
+        )}
+      </div>
+
+      <div
+        className={`flex items-center justify-between gap-1 ${
+          awayWon ? "font-semibold" : homeWon ? "opacity-40" : ""
+        }`}
+      >
+        <span className="flex items-center gap-2 min-w-0">
+          <span className="text-xl shrink-0">{away?.flag_emoji ?? "🏳️"}</span>
+          <span className="text-sm truncate">{away?.name ?? "TBD"}</span>
+        </span>
+        {(isCompleted || isLive) && (
+          <span className="tabular-nums font-bold text-sm shrink-0">
+            {match.away_score ?? "-"}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PairRow({ pair }: { pair: BracketPair }) {
+  const showBracket = pair.sources.length === 2 && pair.dest !== null;
+
+  if (!showBracket) {
+    return (
+      <div className="space-y-3 mb-6">
+        {pair.sources.map((m) => (
+          <MatchCard key={m.id} match={m} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-stretch mb-6">
+      {/* Source matches — 55% */}
+      <div className="flex flex-col gap-3 min-w-0" style={{ flex: "11 1 0%" }}>
+        {pair.sources.map((m) => (
+          <MatchCard key={m.id} match={m} />
+        ))}
+      </div>
+
+      {/* Bracket connector lines */}
+      <div className="w-6 shrink-0 flex flex-col">
+        <div className="flex-1 border-r-2 border-b-2 border-border/40 rounded-br-xl" />
+        <div className="flex-1 border-r-2 border-t-2 border-border/40 rounded-tr-xl" />
+      </div>
+
+      {/* Destination match (next round preview) — 45%, vertically centered */}
+      <div className="flex items-center min-w-0" style={{ flex: "9 1 0%" }}>
+        <MatchCard match={pair.dest!} />
+      </div>
+    </div>
+  );
+}
+
 export function BracketView({ matches }: { matches: BracketMatch[] }) {
   const byRound = useMemo(() => groupByRound(matches), [matches]);
   const defaultRound = useMemo(() => getDefaultRound(byRound), [byRound]);
-  const [activeTab, setActiveTab] = useState<RoundKey>(defaultRound);
+  const [activeRound, setActiveRound] = useState<RoundKey>(defaultRound);
+
+  const currentMatches = byRound[activeRound];
+  const roundIdx = ROUNDS.indexOf(activeRound);
+  const nextRoundKey =
+    roundIdx < ROUNDS.length - 1 ? ROUNDS[roundIdx + 1] : undefined;
+  const nextMatches = nextRoundKey ? byRound[nextRoundKey] : [];
+  const nextMatchById = useMemo(
+    () => new Map(nextMatches.map((m) => [m.id, m])),
+    [nextMatches]
+  );
+
+  const pairs = useMemo(
+    () => buildPairs(currentMatches, nextMatchById),
+    [currentMatches, nextMatchById]
+  );
 
   return (
-    <>
-      {/* ── Mobile: tabs ── */}
-      <div className="md:hidden">
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => setActiveTab(v as RoundKey)}
-        >
-          <TabsList className="w-full">
-            {ROUNDS.map((r) => (
-              <TabsTrigger key={r} value={r} className="flex-1 text-xs">
-                {ROUND_SHORT[r]}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+    <div>
+      {/* Google-style tab bar with underline indicator */}
+      <div className="flex overflow-x-auto border-b border-border mb-5">
+        {ROUNDS.map((r) => (
+          <button
+            key={r}
+            onClick={() => setActiveRound(r)}
+            className={[
+              "shrink-0 pb-3 pt-1 px-3 text-sm whitespace-nowrap border-b-2 -mb-px transition-colors",
+              r === activeRound
+                ? "border-primary text-foreground font-semibold"
+                : "border-transparent text-muted-foreground hover:text-foreground",
+            ].join(" ")}
+          >
+            {ROUND_LABELS[r]}
+          </button>
+        ))}
+      </div>
 
-          {ROUNDS.map((r) => (
-            <TabsContent key={r} value={r} className="mt-4">
-              <h2 className="text-sm font-semibold text-muted-foreground mb-3">
-                {ROUND_LABELS[r]}
-              </h2>
-              <div className="flex flex-col gap-3">
-                {byRound[r].length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No matches scheduled yet.
-                  </p>
-                ) : (
-                  byRound[r].map((match) => (
-                    <FullMatchCard key={match.id} match={match} />
-                  ))
-                )}
-              </div>
-            </TabsContent>
+      {/* Round content */}
+      {currentMatches.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-12">
+          No matches scheduled yet.
+        </p>
+      ) : (
+        <div>
+          {pairs.map((pair, i) => (
+            <PairRow key={i} pair={pair} />
           ))}
-        </Tabs>
-      </div>
-
-      {/* ── Desktop: bracket columns ── */}
-      <div className="hidden md:block overflow-x-auto pb-6">
-        <div className="flex gap-2 items-start" style={{ minWidth: "880px" }}>
-          {ROUNDS.map((round) => {
-            const slotPx = SLOT_MULTIPLIERS[round] * BASE_PX;
-            const roundMatches = byRound[round];
-            return (
-              <div
-                key={round}
-                className="flex-shrink-0"
-                style={{ width: "168px" }}
-              >
-                <div className="text-center text-xs font-semibold text-muted-foreground mb-2 px-1">
-                  {ROUND_LABELS[round]}
-                </div>
-                {roundMatches.length === 0 ? (
-                  <div
-                    style={{ height: `${16 * BASE_PX}px` }}
-                    className="flex items-start pt-3 justify-center text-xs text-muted-foreground"
-                  >
-                    TBD
-                  </div>
-                ) : (
-                  roundMatches.map((match) => (
-                    <div
-                      key={match.id}
-                      className="flex items-center"
-                      style={{ height: `${slotPx}px` }}
-                    >
-                      <CompactMatchCard match={match} />
-                    </div>
-                  ))
-                )}
-              </div>
-            );
-          })}
         </div>
-      </div>
-    </>
+      )}
+    </div>
   );
 }
