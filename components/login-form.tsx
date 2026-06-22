@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -51,6 +52,9 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <div className="flex justify-center">
+        <Image src="/logo.png" alt="Campo Caribe" width={72} height={72} />
+      </div>
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Log in</CardTitle>
