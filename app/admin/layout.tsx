@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { LogoutButton } from "@/components/logout-button";
+import { AdminNav } from "./admin-nav";
 
 async function AdminGuard({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -28,50 +27,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <nav className="w-full border-b border-border">
-        <div className="max-w-6xl mx-auto flex items-center gap-4 p-4 px-5">
-          <Link
-            href="/"
-            className="font-bold text-base hover:opacity-80 transition-opacity"
-          >
-            ⚽ Campo Caribe
-          </Link>
-          <span className="text-muted-foreground text-sm">/</span>
-          <span className="text-sm font-semibold">Admin</span>
-
-          <div className="flex items-center gap-4 ml-4">
-            <Link
-              href="/admin/teams"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Teams
-            </Link>
-            <Link
-              href="/admin/matches"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Matches
-            </Link>
-            <Link
-              href="/admin/settings"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Settings
-            </Link>
-            <Link
-              href="/admin/employees"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Employees
-            </Link>
-          </div>
-
-          <div className="ml-auto">
-            <LogoutButton />
-          </div>
-        </div>
-      </nav>
-
+      <AdminNav />
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6">
         <Suspense>
           <AdminGuard>{children}</AdminGuard>

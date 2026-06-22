@@ -289,6 +289,7 @@ function BulkActionsPanel() {
 
   return (
     <Section title="D — Bulk Actions">
+      {/* Test data tools */}
       <div className="flex flex-wrap gap-2">
         <ActionButton
           label="Seed Test Data"
@@ -323,6 +324,15 @@ function BulkActionsPanel() {
             <button type="button" onClick={() => setConfirmTeardown(false)} className="text-sm text-muted-foreground">Cancel</button>
           </div>
         )}
+      </div>
+      {/* Divider */}
+      <div className="flex items-center gap-3 my-3">
+        <div className="flex-1 border-t border-border" />
+        <span className="text-xs text-muted-foreground">Score tools</span>
+        <div className="flex-1 border-t border-border" />
+      </div>
+      {/* Production score tools */}
+      <div className="flex flex-wrap gap-2">
         <ActionButton
           label="Recalculate All Scores"
           pendingLabel="Recalculating…"
@@ -330,7 +340,7 @@ function BulkActionsPanel() {
           onClick={() => run(() => recalculateAllScores(), "Recalculated")}
         />
       </div>
-      {msg && <p className="text-sm">{msg}</p>}
+      {msg && <p className="text-sm mt-2">{msg}</p>}
     </Section>
   );
 }
