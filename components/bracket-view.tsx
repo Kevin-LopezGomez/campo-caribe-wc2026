@@ -1,6 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
+
+const ROUND_SHORT: Record<string, string> = {
+  R32: "R32",
+  R16: "R16",
+  QF: "QF",
+  SF: "SF",
+  F: "Final",
+};
 
 type TeamSnap = {
   id: string;
@@ -229,6 +237,18 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
   const defaultRound = useMemo(() => getDefaultRound(byRound), [byRound]);
   const [activeRound, setActiveRound] = useState<RoundKey>(defaultRound);
 
+  const tabBarRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  useEffect(() => {
+    const container = tabBarRef.current;
+    const activeEl = tabRefs.current[activeRound];
+    if (!container || !activeEl) return;
+    const targetScroll =
+      activeEl.offsetLeft - container.offsetWidth / 2 + activeEl.offsetWidth / 2;
+    container.scrollTo({ left: targetScroll, behavior: "smooth" });
+  }, [activeRound]);
+
   const currentMatches = byRound[activeRound];
   const roundIdx = ROUNDS.indexOf(activeRound);
   const nextRoundKey =
@@ -246,11 +266,12 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
 
   return (
     <div>
-      {/* Google-style tab bar with underline indicator */}
-      <div className="flex overflow-x-auto border-b border-border mb-5">
+      {/* Tab bar — short labels, auto-scrolls active tab into center */}
+      <div ref={tabBarRef} className="flex overflow-x-auto border-b border-border mb-5">
         {ROUNDS.map((r) => (
           <button
             key={r}
+            ref={(el) => { tabRefs.current[r] = el; }}
             onClick={() => setActiveRound(r)}
             className={[
               "shrink-0 pb-3 pt-1 px-3 text-sm whitespace-nowrap border-b-2 -mb-px transition-colors",
@@ -259,7 +280,7 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
                 : "border-transparent text-muted-foreground hover:text-foreground",
             ].join(" ")}
           >
-            {ROUND_LABELS[r]}
+            {ROUND_SHORT[r]}
           </button>
         ))}
       </div>
