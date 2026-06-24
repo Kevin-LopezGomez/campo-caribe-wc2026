@@ -25,10 +25,12 @@ export function LeaderboardClient({
   rows,
   currentUserId,
   canSeeTestUsers,
+  rodRevealed,
 }: {
   rows: LeaderboardRow[];
   currentUserId: string;
   canSeeTestUsers: boolean;
+  rodRevealed: boolean;
 }) {
   const [includeTest, setIncludeTest] = useState(false);
   const [selected, setSelected] = useState<LeaderboardRow | null>(null);
@@ -57,7 +59,7 @@ export function LeaderboardClient({
             <tr>
               <th className="text-left px-4 py-2 w-12">#</th>
               <th className="text-left px-4 py-2">Name</th>
-              <th className="text-left px-4 py-2 hidden sm:table-cell">Ride or Die</th>
+              {rodRevealed && <th className="text-left px-4 py-2 hidden sm:table-cell">Ride or Die</th>}
               <th className="text-right px-4 py-2">Points</th>
             </tr>
           </thead>
@@ -84,11 +86,11 @@ export function LeaderboardClient({
                       <span className="ml-2 text-xs text-muted-foreground">[test]</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 hidden sm:table-cell text-muted-foreground">
-                    {row.rod_flag
-                      ? `${row.rod_flag} ${row.rod_name}`
-                      : "—"}
-                  </td>
+                  {rodRevealed && (
+                    <td className="px-4 py-2.5 hidden sm:table-cell text-muted-foreground">
+                      {row.rod_flag ? `${row.rod_flag} ${row.rod_name}` : "—"}
+                    </td>
+                  )}
                   <td className="px-4 py-2.5 text-right font-semibold tabular-nums">
                     {row.total_points}
                   </td>
@@ -97,7 +99,7 @@ export function LeaderboardClient({
             })}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                <td colSpan={rodRevealed ? 4 : 3} className="px-4 py-8 text-center text-sm text-muted-foreground">
                   No participants yet
                 </td>
               </tr>
@@ -118,7 +120,7 @@ export function LeaderboardClient({
                 <span>Rank: <strong>#{selected.rank}</strong></span>
                 <span>Total: <strong>{selected.total_points} pts</strong></span>
               </div>
-              {selected.rod_flag && (
+              {rodRevealed && selected.rod_flag && (
                 <p className="text-sm">
                   Ride or Die: {selected.rod_flag} {selected.rod_name}
                 </p>

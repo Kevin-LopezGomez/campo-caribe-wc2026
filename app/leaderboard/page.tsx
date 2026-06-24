@@ -30,7 +30,7 @@ async function LeaderboardData() {
     .single();
   const canSeeTestUsers = ["admin", "dev"].includes(myProfile?.role ?? "");
 
-  const [lbRes, rodRes, scoresRes, tiebreakerMatchRes] = await Promise.all([
+  const [lbRes, rodRes, scoresRes, tiebreakerMatchRes, lockRes] = await Promise.all([
     // get_leaderboard now returns role + is_test
     admin.rpc("get_leaderboard"),
     admin.from("ride_or_die_picks").select("user_id, team:team_id(name, flag_emoji)"),
@@ -40,7 +40,12 @@ async function LeaderboardData() {
       .select("id, round, winner_team_id")
       .in("round", TB_ROUNDS)
       .eq("status", "completed"),
+    admin.from("settings").select("value").eq("key", "ride_or_die_lock_time").maybeSingle(),
   ]);
+
+  // Ride or Die picks are only revealed after the lock time has passed
+  const lockTime = lockRes.data?.value as string | null | undefined;
+  const rodRevealed = lockTime ? new Date(lockTime) <= new Date() : false;
 
   const lbRows = lbRes.data ?? [];
   const rodByUser = new Map(
@@ -130,6 +135,7 @@ async function LeaderboardData() {
       rows={rows}
       currentUserId={user.id}
       canSeeTestUsers={canSeeTestUsers}
+      rodRevealed={rodRevealed}
     />
   );
 }
