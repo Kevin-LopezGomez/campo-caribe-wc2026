@@ -44,8 +44,10 @@ async function LeaderboardData() {
     admin.from("profiles").select("id, company"),
   ]);
 
+  type CompanyRow = { id: string; company: string | null };
+  const companyData = companyRes.data as unknown as CompanyRow[] | null;
   const companyByUser = new Map(
-    (companyRes.data ?? []).map((p) => [p.id, p.company as string | null])
+    (companyData ?? []).map((p) => [p.id, p.company])
   );
 
   // Ride or Die picks are only revealed after the lock time has passed
