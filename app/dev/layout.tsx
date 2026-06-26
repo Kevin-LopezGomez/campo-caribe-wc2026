@@ -10,11 +10,12 @@ async function DevGuard({ children }: { children: React.ReactNode }) {
   } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
 
-  const { data: profile } = await supabase
+  const { data: profileRaw } = await supabase
     .from("profiles")
     .select("role, company")
     .eq("id", user.id)
     .single();
+  const profile = profileRaw as unknown as { role: string; company: string | null } | null;
   if (profile?.role !== "dev" || profile?.company !== "Campo Caribe") redirect("/");
 
   return <>{children}</>;
