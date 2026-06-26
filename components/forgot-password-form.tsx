@@ -77,8 +77,15 @@ export function ForgotPasswordForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <div className="flex justify-center">
-        <Image src="/logo.png" alt="Campo Caribe" width={72} height={72} />
+      <div className="flex justify-center mb-2">
+        <Image
+          src="/farm-cup-trophy.png"
+          alt="The Farm Cup 2026"
+          width={100}
+          height={125}
+          className="object-contain"
+          priority
+        />
       </div>
       <Card>
         <CardHeader>
@@ -94,7 +101,7 @@ export function ForgotPasswordForm({
                 <Label htmlFor="employeeId">Employee ID</Label>
                 <Input
                   id="employeeId"
-                  placeholder="e.g. 6KYLJ6V2N"
+                  placeholder="e.g. 6KYLJ6V2N or HF001"
                   required
                   autoCapitalize="characters"
                   autoComplete="off"

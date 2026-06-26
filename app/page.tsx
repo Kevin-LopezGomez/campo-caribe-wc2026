@@ -64,20 +64,22 @@ async function Dashboard() {
           Welcome, {profile?.full_name?.split(", ")[1] ?? "there"} 👋
         </h1>
         <p className="text-muted-foreground mt-1">
-          World Cup 2026 — Campo Caribe Edition
+          The Farm Cup 2026 — World Cup Prediction Challenge
         </p>
       </div>
 
-      {/* vs banner */}
-      <div className="flex items-center justify-center gap-5">
-        <div className="flex flex-col items-center gap-1">
-          <Image src="/logo.png" alt="Campo Caribe" width={32} height={32} className="object-contain" />
-          <span className="text-xs font-medium text-muted-foreground">Campo Caribe</span>
-        </div>
-        <span className="text-lg font-bold text-muted-foreground">vs</span>
-        <div className="flex flex-col items-center gap-1">
-          <Image src="/hawaii-farming-logo.avif" alt="Hawaii Farming" width={32} height={32} className="object-contain" />
-          <span className="text-xs font-medium text-muted-foreground">Hawaii Farming</span>
+      {/* vs banner — full-width centering independent of grid */}
+      <div className="w-full flex justify-center">
+        <div className="flex items-center gap-5">
+          <div className="flex flex-col items-center gap-1">
+            <Image src="/logo.png" alt="Campo Caribe" width={32} height={32} className="object-contain" />
+            <span className="text-xs font-medium text-muted-foreground">Campo Caribe</span>
+          </div>
+          <span className="text-lg font-bold text-muted-foreground">vs</span>
+          <div className="flex flex-col items-center gap-1">
+            <Image src="/hawaii-farming-logo.avif" alt="Hawaii Farming" width={32} height={32} className="object-contain" />
+            <span className="text-xs font-medium text-muted-foreground">Hawaii Farming</span>
+          </div>
         </div>
       </div>
 
