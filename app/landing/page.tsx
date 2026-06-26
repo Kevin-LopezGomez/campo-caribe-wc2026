@@ -1,17 +1,24 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function LandingPage() {
+async function AuthRedirect() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (user) redirect("/");
+  return null;
+}
 
+export default function LandingPage() {
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <Suspense>
+        <AuthRedirect />
+      </Suspense>
       <div className="flex flex-col items-center gap-6 w-full max-w-sm text-center">
         <Image src="/logo.png" alt="Campo Caribe" width={64} height={64} />
         <h1 className="text-3xl font-bold tracking-tight">Campo Caribe WC2026</h1>
