@@ -235,11 +235,15 @@ export function RideOrDieClient({
       </div>
 
       {/* ── Legend ── */}
-      {isLocked && (
-        <div className="mt-8 text-xs text-muted-foreground">
-          <span>Pick counts shown after lock</span>
-        </div>
-      )}
+      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        {qualifiedSet.size > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-sm border-2 border-green-500" />
+            Qualified for Round of 32
+          </span>
+        )}
+        {isLocked && <span>Pick counts shown after lock</span>}
+      </div>
 
       {/* ── Confirmation dialog ── */}
       <Dialog
