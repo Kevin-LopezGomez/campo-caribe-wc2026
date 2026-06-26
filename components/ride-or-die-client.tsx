@@ -47,12 +47,14 @@ function TeamCard({
   isLocked,
   pickCount,
   onClick,
+  isQualified,
 }: {
   team: Team;
   isSelected: boolean;
   isLocked: boolean;
   pickCount: number | undefined;
   onClick: () => void;
+  isQualified: boolean;
 }) {
   const interactive = !isLocked && !team.eliminated;
 
@@ -68,6 +70,8 @@ function TeamCard({
           : "",
         isSelected
           ? "border-primary bg-primary/10 ring-2 ring-primary ring-offset-1"
+          : isQualified
+          ? "border-green-500 bg-card ring-2 ring-green-500"
           : "border-border bg-card",
         isLocked && !isSelected ? "cursor-default" : "",
         team.eliminated ? "opacity-40" : "",
@@ -114,17 +118,21 @@ export function RideOrDieClient({
   lockTime,
   isLocked,
   pickCounts,
+  qualifiedIds,
 }: {
   teams: Team[];
   currentPick: CurrentPick;
   lockTime: string | null;
   isLocked: boolean;
   pickCounts: Record<string, number>;
+  qualifiedIds: string[];
 }) {
   const router = useRouter();
   const [pendingTeam, setPendingTeam] = useState<Team | null>(null);
   const [error, setError] = useState<string>();
   const [isPending, startTransition] = useTransition();
+
+  const qualifiedSet = new Set(qualifiedIds);
 
   function handleTeamClick(team: Team) {
     if (isLocked || team.eliminated) return;
@@ -221,6 +229,7 @@ export function RideOrDieClient({
             isLocked={isLocked}
             pickCount={pickCounts[team.id]}
             onClick={() => handleTeamClick(team)}
+            isQualified={qualifiedSet.has(team.id)}
           />
         ))}
       </div>
