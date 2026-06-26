@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -15,7 +16,7 @@ async function Dashboard() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/auth/login");
+  if (!user) redirect("/landing");
 
   const admin = createAdminClient();
 
@@ -65,6 +66,19 @@ async function Dashboard() {
         <p className="text-muted-foreground mt-1">
           World Cup 2026 — Campo Caribe Edition
         </p>
+      </div>
+
+      {/* vs banner */}
+      <div className="flex items-center justify-center gap-5">
+        <div className="flex flex-col items-center gap-1">
+          <Image src="/logo.png" alt="Campo Caribe" width={32} height={32} className="object-contain" />
+          <span className="text-xs font-medium text-muted-foreground">Campo Caribe</span>
+        </div>
+        <span className="text-lg font-bold text-muted-foreground">vs</span>
+        <div className="flex flex-col items-center gap-1">
+          <Image src="/hawaii-farming-logo.avif" alt="Hawaii Farming" width={32} height={32} className="object-contain" />
+          <span className="text-xs font-medium text-muted-foreground">Hawaii Farming</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
