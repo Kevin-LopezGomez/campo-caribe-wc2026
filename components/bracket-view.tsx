@@ -239,6 +239,7 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
 
   const tabBarRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const touchStartX = useRef<number | null>(null);
 
   useEffect(() => {
     const container = tabBarRef.current;
@@ -250,7 +251,6 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
   }, [activeRound]);
 
   const currentMatches = byRound[activeRound];
-  const roundIdx = ROUNDS.indexOf(activeRound);
   const nextRoundKey =
     roundIdx < ROUNDS.length - 1 ? ROUNDS[roundIdx + 1] : undefined;
   const nextMatches = nextRoundKey ? byRound[nextRoundKey] : [];
@@ -263,6 +263,21 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
     () => buildPairs(currentMatches, nextMatchById),
     [currentMatches, nextMatchById]
   );
+
+  const roundIdx = ROUNDS.indexOf(activeRound);
+
+  function handleTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0 && roundIdx < ROUNDS.length - 1) setActiveRound(ROUNDS[roundIdx + 1]);
+    if (dx > 0 && roundIdx > 0) setActiveRound(ROUNDS[roundIdx - 1]);
+  }
 
   return (
     <div>
@@ -285,18 +300,20 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
         ))}
       </div>
 
-      {/* Round content */}
-      {currentMatches.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-12">
-          No matches scheduled yet.
-        </p>
-      ) : (
-        <div>
-          {pairs.map((pair, i) => (
-            <PairRow key={i} pair={pair} />
-          ))}
-        </div>
-      )}
+      {/* Round content — swipe left/right to navigate rounds */}
+      <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        {currentMatches.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-12">
+            No matches scheduled yet.
+          </p>
+        ) : (
+          <div>
+            {pairs.map((pair, i) => (
+              <PairRow key={i} pair={pair} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
