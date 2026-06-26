@@ -10,6 +10,7 @@ import {
   recalculateOneUser,
   getUserBreakdown,
   getMatchDetail,
+  bulkRegisterHawaiiFarming,
   type UserBreakdown,
   type MatchDetail,
   type DevStats,
@@ -273,6 +274,7 @@ function MathValidatorPanel({ profiles }: { profiles: Profile[] }) {
 // ── D: Bulk Actions ───────────────────────────────────────────────────────────
 function BulkActionsPanel() {
   const [msg, setMsg] = useState<string | null>(null);
+  const [hfResult, setHfResult] = useState<{ created: number; skipped: number; errors: string[] } | null>(null);
   const [confirmTeardown, setConfirmTeardown] = useState(false);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -283,6 +285,15 @@ function BulkActionsPanel() {
       const r = await action();
       if (r.error) setMsg(`Error: ${r.error}`);
       else setMsg(label ? `${label} complete${"count" in r ? ` (${r.count})` : ""}.` : "Done.");
+      router.refresh();
+    });
+  }
+
+  function runHfRegister() {
+    setHfResult(null);
+    startTransition(async () => {
+      const r = await bulkRegisterHawaiiFarming();
+      setHfResult(r);
       router.refresh();
     });
   }
@@ -340,6 +351,29 @@ function BulkActionsPanel() {
           onClick={() => run(() => recalculateAllScores(), "Recalculated")}
         />
       </div>
+      {/* Divider */}
+      <div className="flex items-center gap-3 my-3">
+        <div className="flex-1 border-t border-border" />
+        <span className="text-xs text-muted-foreground">Hawaii Farming</span>
+        <div className="flex-1 border-t border-border" />
+      </div>
+      {/* HF bulk registration */}
+      <div className="flex flex-wrap gap-2">
+        <ActionButton
+          label="Register Hawaii Farming Employees"
+          pendingLabel="Registering…"
+          pending={isPending}
+          onClick={runHfRegister}
+        />
+      </div>
+      {hfResult && (
+        <div className="text-sm mt-2 space-y-1">
+          <p>✓ {hfResult.created} created, {hfResult.skipped} skipped, {hfResult.errors.length} errors</p>
+          {hfResult.errors.map((e, i) => (
+            <p key={i} className="text-destructive text-xs">{e}</p>
+          ))}
+        </div>
+      )}
       {msg && <p className="text-sm mt-2">{msg}</p>}
     </Section>
   );

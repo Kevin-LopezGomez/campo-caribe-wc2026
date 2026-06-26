@@ -361,3 +361,72 @@ export async function getDevStats(): Promise<{ data?: DevStats; error?: string }
     },
   };
 }
+
+export async function bulkRegisterHawaiiFarming(): Promise<{
+  created: number;
+  skipped: number;
+  errors: string[];
+}> {
+  const admin = createAdminClient();
+
+  type HFEmployee = {
+    employee_id: string;
+    full_name: string;
+    access_key: string;
+    role: string | null;
+    job_title: string | null;
+    home_department: string | null;
+    division: string | null;
+  };
+
+  const { data: employeesRaw, error: fetchError } = await admin
+    .from("approved_employees")
+    .select("employee_id, full_name, access_key, role, job_title, home_department, division")
+    .eq("company", "Hawaii Farming")
+    .eq("is_registered", false);
+
+  if (fetchError) return { created: 0, skipped: 0, errors: [fetchError.message] };
+
+  const employees = (employeesRaw ?? []) as unknown as HFEmployee[];
+  let created = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+
+  for (const employee of employees) {
+    const { error: createError } = await admin.auth.admin.createUser({
+      email: `${employee.employee_id}@campocaribe.internal`,
+      password: employee.access_key,
+      email_confirm: true,
+      user_metadata: {
+        employee_id: employee.employee_id,
+        full_name: employee.full_name,
+        role: employee.role ?? "user",
+        job_title: employee.job_title ?? "",
+        home_department: employee.home_department ?? "",
+        division: employee.division ?? "",
+        company: "Hawaii Farming",
+      },
+    });
+
+    if (createError) {
+      if (
+        createError.message.includes("already registered") ||
+        createError.message.includes("already been registered")
+      ) {
+        skipped++;
+        continue;
+      }
+      errors.push(`${employee.employee_id}: ${createError.message}`);
+      continue;
+    }
+
+    await admin
+      .from("approved_employees")
+      .update({ is_registered: true, registered_at: new Date().toISOString() })
+      .eq("employee_id", employee.employee_id);
+
+    created++;
+  }
+
+  return { created, skipped, errors };
+}
