@@ -66,14 +66,14 @@ export function AppNav() {
       <div className="max-w-5xl mx-auto px-5">
         {/* Row 1: logo + name on left, desktop links + logout on right */}
         <div className="flex justify-between items-center py-3">
-          <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Image src="/logo.png" alt="Campo Caribe" width={32} height={32} className="shrink-0" />
+          <Link href="/" className="flex shrink-0 items-center gap-2 hover:opacity-80 transition-opacity">
+            <Image src="/farm-cup-trophy.png" alt="The Farm Cup 2026" width={28} height={35} className="shrink-0 object-contain" />
             <span className="font-bold text-lg">
               <span className="hidden lg:inline">The </span>Farm Cup 2026
             </span>
           </Link>
           {/* Desktop: pill nav links + logout inline */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex shrink-0 items-center gap-2">
             {allLinks.map(({ href, label }) => (
               <NavLink key={href} href={href} label={label} pathname={pathname} />
             ))}
