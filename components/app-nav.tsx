@@ -67,7 +67,7 @@ export function AppNav() {
         {/* Row 1: logo + name on left, desktop links + logout on right */}
         <div className="flex justify-between items-center py-3">
           <Link href="/" className="flex shrink-0 items-center gap-2 hover:opacity-80 transition-opacity">
-            <Image src="/soccer-ball.png" alt="The Farm Cup 2026" width={32} height={32} className="shrink-0 rounded-full object-cover" />
+            <Image src="/farm-cup-trophy.png" alt="The Farm Cup 2026" width={28} height={35} className="shrink-0 object-contain" />
             <span className="font-bold text-lg">
               <span className="hidden lg:inline">The </span>Farm Cup 2026
             </span>
