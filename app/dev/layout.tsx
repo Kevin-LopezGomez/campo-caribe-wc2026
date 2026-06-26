@@ -12,10 +12,10 @@ async function DevGuard({ children }: { children: React.ReactNode }) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, company")
     .eq("id", user.id)
     .single();
-  if (profile?.role !== "dev") redirect("/");
+  if (profile?.role !== "dev" || profile?.company !== "Campo Caribe") redirect("/");
 
   return <>{children}</>;
 }

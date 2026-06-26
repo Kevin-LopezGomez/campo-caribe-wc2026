@@ -43,22 +43,24 @@ function NavLink({ href, label, pathname }: { href: string; label: string; pathn
 export function AppNav() {
   const pathname = usePathname();
   const [role, setRole] = useState<string | null>(null);
+  const [company, setCompany] = useState<string | null>(null);
 
   useEffect(() => {
     createClient()
       .auth.getSession()
       .then(({ data: { session } }) => {
         setRole((session?.user?.user_metadata?.role as string) ?? null);
+        setCompany((session?.user?.user_metadata?.company as string) ?? null);
       });
   }, []);
 
   const isAdmin = role === "admin" || role === "dev";
-  const isDev = role === "dev";
+  const isCCDev = role === "dev" && company === "Campo Caribe";
 
   const allLinks = [
     ...BASE_LINKS,
     ...(isAdmin ? ADMIN_LINKS : []),
-    ...(isDev ? DEV_LINKS : []),
+    ...(isCCDev ? DEV_LINKS : []),
   ];
 
   return (
