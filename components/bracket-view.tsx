@@ -239,7 +239,7 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
 
   const tabBarRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
-  const touchStartX = useRef<number | null>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const container = tabBarRef.current;
@@ -267,14 +267,16 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
   const roundIdx = ROUNDS.indexOf(activeRound);
 
   function handleTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
+    touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
   }
 
   function handleTouchEnd(e: React.TouchEvent) {
-    if (touchStartX.current === null) return;
-    const dx = e.changedTouches[0].clientX - touchStartX.current;
-    touchStartX.current = null;
-    if (Math.abs(dx) < 50) return;
+    if (!touchStart.current) return;
+    const dx = e.changedTouches[0].clientX - touchStart.current.x;
+    const dy = e.changedTouches[0].clientY - touchStart.current.y;
+    touchStart.current = null;
+    // Only fire if swipe is clearly horizontal (not a diagonal scroll)
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
     if (dx < 0 && roundIdx < ROUNDS.length - 1) setActiveRound(ROUNDS[roundIdx + 1]);
     if (dx > 0 && roundIdx > 0) setActiveRound(ROUNDS[roundIdx - 1]);
   }
