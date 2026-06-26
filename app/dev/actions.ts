@@ -379,8 +379,8 @@ export async function bulkRegisterHawaiiFarming(): Promise<{
     division: string | null;
   };
 
-  const { data: employeesRaw, error: fetchError } = await admin
-    .from("approved_employees")
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: employeesRaw, error: fetchError } = await (admin.from("approved_employees") as any)
     .select("employee_id, full_name, access_key, role, job_title, home_department, division")
     .eq("company", "Hawaii Farming")
     .eq("is_registered", false);
