@@ -24,32 +24,38 @@ export function SignUpForm({
 }: React.ComponentPropsWithoutRef<"div">) {
   const [employeeId, setEmployeeId] = useState("");
   const [accessKey, setAccessKey] = useState("");
-  const [password, setPassword] = useState("");
+  const [passwordState, setPasswordState] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const isHawaiiFarming = employeeId.startsWith("HF");
 
   const handleSignUp = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      setIsLoading(false);
-      return;
-    }
+    const cleanEmployeeId = employeeId.trim().toUpperCase().replace(/-/g, "");
+    const cleanAccessKey = accessKey.trim();
+    const password = isHawaiiFarming ? cleanAccessKey : passwordState;
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      setIsLoading(false);
-      return;
+    if (!isHawaiiFarming) {
+      if (passwordState !== confirmPassword) {
+        setError("Passwords do not match.");
+        setIsLoading(false);
+        return;
+      }
+      if (passwordState.length < 8) {
+        setError("Password must be at least 8 characters.");
+        setIsLoading(false);
+        return;
+      }
     }
 
     try {
-      const cleanEmployeeId = employeeId.trim().toUpperCase().replace(/-/g, "");
-      const result = await signUp(cleanEmployeeId, accessKey.trim(), password);
+      const result = await signUp(cleanEmployeeId, cleanAccessKey, password);
 
       if (result.error) {
         setError(result.error);
@@ -64,7 +70,6 @@ export function SignUpForm({
       });
 
       if (signInError) {
-        // Account exists but auto-login failed — send to login page
         router.push("/auth/login?registered=1");
         return;
       }
@@ -93,7 +98,9 @@ export function SignUpForm({
         <CardHeader>
           <CardTitle className="text-2xl">Create your account</CardTitle>
           <CardDescription>
-            Use your employee ID and the access key HR provided
+            {isHawaiiFarming
+              ? "Enter your employee ID and access key to get started"
+              : "Use your employee ID and the access key HR provided"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -115,35 +122,38 @@ export function SignUpForm({
                 <Label htmlFor="accessKey">Access Key</Label>
                 <Input
                   id="accessKey"
-                  placeholder="6-digit code from HR"
+                  placeholder="Access key from HR"
                   required
-                  maxLength={6}
                   inputMode="numeric"
                   value={accessKey}
                   onChange={(e) => setAccessKey(e.target.value)}
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  minLength={8}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
+              {!isHawaiiFarming && (
+                <>
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      required
+                      minLength={8}
+                      value={passwordState}
+                      onChange={(e) => setPasswordState(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="confirmPassword">Confirm Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Creating account..." : "Create account"}
