@@ -47,24 +47,19 @@ function TeamCard({
   isLocked,
   pickCount,
   onClick,
-  r32IsSet,
-  isQualified,
 }: {
   team: Team;
   isSelected: boolean;
   isLocked: boolean;
   pickCount: number | undefined;
   onClick: () => void;
-  r32IsSet: boolean;
-  isQualified: boolean;
 }) {
-  const notQualified = r32IsSet && !isQualified;
-  const interactive = !isLocked && !team.eliminated && !notQualified;
+  const interactive = !isLocked && !team.eliminated;
 
   return (
     <button
       onClick={interactive ? onClick : undefined}
-      disabled={(isLocked && !isSelected) || notQualified}
+      disabled={isLocked && !isSelected}
       aria-pressed={isSelected}
       className={[
         "relative w-full rounded-lg border p-3 text-left transition-all duration-150",
@@ -74,9 +69,7 @@ function TeamCard({
         isSelected
           ? "border-primary bg-primary/10 ring-2 ring-primary ring-offset-1"
           : "border-border bg-card",
-        !isSelected && r32IsSet && isQualified ? "ring-2 ring-green-500" : "",
-        notQualified ? "opacity-40 grayscale pointer-events-none" : "",
-        isLocked && !isSelected && !notQualified ? "cursor-default" : "",
+        isLocked && !isSelected ? "cursor-default" : "",
         team.eliminated ? "opacity-40" : "",
       ]
         .filter(Boolean)
@@ -121,30 +114,21 @@ export function RideOrDieClient({
   lockTime,
   isLocked,
   pickCounts,
-  qualifiedIds,
-  r32IsSet,
 }: {
   teams: Team[];
   currentPick: CurrentPick;
   lockTime: string | null;
   isLocked: boolean;
   pickCounts: Record<string, number>;
-  qualifiedIds: string[];
-  r32IsSet: boolean;
 }) {
   const router = useRouter();
   const [pendingTeam, setPendingTeam] = useState<Team | null>(null);
   const [error, setError] = useState<string>();
   const [isPending, startTransition] = useTransition();
 
-  const qualifiedSet = new Set(qualifiedIds);
-  const pickDidntQualify =
-    r32IsSet && currentPick && !qualifiedSet.has(currentPick.team_id);
-
   function handleTeamClick(team: Team) {
     if (isLocked || team.eliminated) return;
-    if (r32IsSet && !qualifiedSet.has(team.id)) return;
-    if (team.id === currentPick?.team_id) return; // already this pick
+    if (team.id === currentPick?.team_id) return;
     setError(undefined);
     setPendingTeam(team);
   }
@@ -227,14 +211,7 @@ export function RideOrDieClient({
         )}
       </p>
 
-      {/* ── Warning: current pick didn't qualify for R32 ── */}
-      {pickDidntQualify && (
-        <div className="mb-4 rounded-lg border border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20 p-3 text-sm text-yellow-800 dark:text-yellow-300">
-          ⚠️ Your current pick didn&apos;t advance to the Round of 32. Please choose a new team.
-        </div>
-      )}
-
-      {/* ── Team grid (flat A-Z, no group sections) ── */}
+      {/* ── Team grid (flat A-Z) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {teams.map((team) => (
           <TeamCard
@@ -244,8 +221,6 @@ export function RideOrDieClient({
             isLocked={isLocked}
             pickCount={pickCounts[team.id]}
             onClick={() => handleTeamClick(team)}
-            r32IsSet={r32IsSet}
-            isQualified={qualifiedSet.has(team.id)}
           />
         ))}
       </div>
