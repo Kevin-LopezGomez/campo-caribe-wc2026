@@ -9,8 +9,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Campo Caribe WC2026",
-  description: "World Cup 2026 bracket and prediction app for Campo Caribe",
+  title: "The Farm Cup 2026",
+  description: "World Cup 2026 prediction challenge for Campo Caribe and Hawaii Farming",
 };
 
 export const viewport: Viewport = {

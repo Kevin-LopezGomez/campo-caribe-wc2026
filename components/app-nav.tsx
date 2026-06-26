@@ -68,7 +68,7 @@ export function AppNav() {
         <div className="flex justify-between items-center py-3">
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <Image src="/logo.png" alt="Campo Caribe" width={32} height={32} className="shrink-0" />
-            <span className="font-bold text-lg">Campo Caribe WC2026</span>
+            <span className="font-bold text-lg">The Farm Cup 2026</span>
           </Link>
           {/* Desktop: pill nav links + logout inline */}
           <div className="hidden md:flex items-center gap-2">

@@ -20,11 +20,25 @@ export default function LandingPage() {
         <AuthRedirect />
       </Suspense>
       <div className="flex flex-col items-center gap-6 w-full max-w-sm text-center">
-        <Image src="/logo.png" alt="Campo Caribe" width={64} height={64} />
-        <h1 className="text-3xl font-bold tracking-tight">Campo Caribe WC2026</h1>
+        <div className="flex flex-col items-center gap-3 mb-2">
+          <Image
+            src="/farm-cup-trophy.png"
+            alt="The Farm Cup 2026"
+            width={180}
+            height={225}
+            className="object-contain"
+            priority
+          />
+          <h1 className="text-3xl font-bold tracking-tight text-center">
+            The Farm Cup 2026
+          </h1>
+          <p className="text-sm text-muted-foreground text-center">
+            World Cup Prediction Challenge
+          </p>
+        </div>
 
         {/* vs banner */}
-        <div className="flex items-center justify-center gap-6 my-2">
+        <div className="flex items-center justify-center gap-6">
           <div className="flex flex-col items-center gap-1.5">
             <Image src="/logo.png" alt="Campo Caribe" width={48} height={48} className="object-contain" />
             <span className="text-sm font-medium">Campo Caribe</span>
