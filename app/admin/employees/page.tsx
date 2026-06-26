@@ -1,10 +1,10 @@
 import { Suspense } from "react";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 import { AdminEmployeesClient, type EmployeeRow } from "./employees-client";
 
 async function EmployeesData() {
-  const admin = createAdminClient();
-  const { data: employees, error } = await admin
+  const supabase = await createClient();
+  const { data: employees, error } = await supabase
     .from("approved_employees")
     .select("id, employee_id, full_name, job_title, home_department, division, is_registered, access_key")
     .not("employee_id", "like", "TEST%")

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +19,13 @@ export type LeaderboardRow = {
   role: UserRole;
   rod_flag: string | null;
   rod_name: string | null;
+  company: string | null;
   score_events: Array<{ points: number; reason: string; created_at: string }>;
+};
+
+const COMPANY_LOGO: Record<string, { src: string; alt: string }> = {
+  "Campo Caribe": { src: "/logo.png", alt: "Campo Caribe" },
+  "Hawaii Farming": { src: "/hawaii-farming-logo.avif", alt: "Hawaii Farming" },
 };
 
 export function LeaderboardClient({
@@ -78,13 +85,26 @@ export function LeaderboardClient({
                     {row.rank}
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className="font-medium">{row.full_name}</span>
-                    {isMe && (
-                      <span className="ml-2 text-xs text-primary font-semibold">you</span>
-                    )}
-                    {row.is_test && (
-                      <span className="ml-2 text-xs text-muted-foreground">[test]</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {row.company && COMPANY_LOGO[row.company] && (
+                        <Image
+                          src={COMPANY_LOGO[row.company].src}
+                          alt={COMPANY_LOGO[row.company].alt}
+                          width={20}
+                          height={20}
+                          className="rounded-sm shrink-0 object-contain"
+                        />
+                      )}
+                      <span>
+                        <span className="font-medium">{row.full_name}</span>
+                        {isMe && (
+                          <span className="ml-2 text-xs text-primary font-semibold">you</span>
+                        )}
+                        {row.is_test && (
+                          <span className="ml-2 text-xs text-muted-foreground">[test]</span>
+                        )}
+                      </span>
+                    </div>
                   </td>
                   {rodRevealed && (
                     <td className="px-4 py-2.5 hidden sm:table-cell text-muted-foreground">

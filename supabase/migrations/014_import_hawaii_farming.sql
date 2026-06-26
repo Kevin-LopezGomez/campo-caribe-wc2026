@@ -1,0 +1,31 @@
+-- ============================================================
+-- 014_import_hawaii_farming.sql
+-- One-time import of Hawaii Farming employees.
+-- Prerequisite: 012_company_field.sql must have run first.
+--
+-- Employee IDs: HF001, HF002, ... format
+-- Access keys: 6-digit random, unique across ALL employees
+--   (must not collide with Campo Caribe keys either)
+-- Company: 'Hawaii Farming' for all rows
+-- ============================================================
+
+-- Roles: 'user' for most, 'admin' for Hawaii Farming admins
+-- (owner will confirm which employees are admins)
+
+-- INSERT INTO public.approved_employees
+--   (employee_id, full_name, access_key, role,
+--    job_title, reports_to, home_department, division, company)
+-- VALUES
+--   -- PLACEHOLDER: fill in once employee list received
+--   ('HF001', 'Example Employee', '000000', 'user',
+--    'Job Title', 'Manager Name', 'Department', 'Division',
+--    'Hawaii Farming')
+-- ON CONFLICT (employee_id) DO UPDATE SET
+--   full_name       = EXCLUDED.full_name,
+--   role            = EXCLUDED.role,
+--   job_title       = EXCLUDED.job_title,
+--   reports_to      = EXCLUDED.reports_to,
+--   home_department = EXCLUDED.home_department,
+--   division        = EXCLUDED.division,
+--   company         = EXCLUDED.company;
+-- (access_key intentionally excluded from DO UPDATE)

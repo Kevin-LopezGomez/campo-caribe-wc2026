@@ -22,6 +22,7 @@ export async function signUp(
     job_title: string | null;
     home_department: string | null;
     division: string | null;
+    company: string | null;
   };
 
   // Validate against the HR allowlist — ilike so casing in HR's spreadsheet doesn't matter
@@ -29,7 +30,7 @@ export async function signUp(
   // the generated TS types until the schema is regenerated after migration runs.
   const { data: employeeRaw, error: lookupError } = await admin
     .from("approved_employees")
-    .select("employee_id, full_name, access_key, role, is_registered, job_title, home_department, division")
+    .select("employee_id, full_name, access_key, role, is_registered, job_title, home_department, division, company")
     .ilike("employee_id", employeeId)
     .maybeSingle();
 
@@ -66,6 +67,7 @@ export async function signUp(
       job_title: employee.job_title ?? "",
       home_department: employee.home_department ?? "",
       division: employee.division ?? "",
+      company: employee.company ?? null,
     },
   });
 
