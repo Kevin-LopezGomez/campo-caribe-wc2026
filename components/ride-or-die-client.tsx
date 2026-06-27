@@ -213,7 +213,7 @@ export function RideOrDieClient({
             <span>
               Picks lock on <span className="font-medium text-foreground">{formatLockTime(lockTime)} AST</span>. You can change your pick any time before then.
             </span>
-            <span className="block mt-1 text-xs text-amber-600 dark:text-amber-500 font-medium">
+            <span className="block mt-1 text-xs text-green-500 font-medium">
               Deadline extended to allow Hawaii Farming employees to register and make their picks.
             </span>
             <span className="block mt-1 text-xs text-muted-foreground">
@@ -224,6 +224,21 @@ export function RideOrDieClient({
           "Lock time not yet set — check back soon."
         )}
       </p>
+
+      {/* ── Legend ── */}
+      <div className="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        {qualifiedSet.size > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block w-3 h-3 rounded-sm border-2 border-green-500" />
+            Already qualified for the knockout rounds
+          </span>
+        )}
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 rounded-sm border-2 border-red-500" />
+          Eliminated
+        </span>
+        {isLocked && <span>Pick counts shown after lock</span>}
+      </div>
 
       {/* ── Eliminated pick warning ── */}
       {currentPick && currentPick.team.eliminated && (
@@ -245,21 +260,6 @@ export function RideOrDieClient({
             isQualified={qualifiedSet.has(team.id)}
           />
         ))}
-      </div>
-
-      {/* ── Legend ── */}
-      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        {qualifiedSet.size > 0 && (
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block w-3 h-3 rounded-sm border-2 border-green-500" />
-            Already qualified for the knockout rounds
-          </span>
-        )}
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm border-2 border-red-500" />
-          Eliminated
-        </span>
-        {isLocked && <span>Pick counts shown after lock</span>}
       </div>
 
       {/* ── Confirmation dialog ── */}
