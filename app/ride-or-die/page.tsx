@@ -25,7 +25,7 @@ async function RideOrDieData() {
       .order("name"),
     supabase
       .from("ride_or_die_picks")
-      .select("id, team_id, locked, team:team_id(id, name, flag_emoji, country_code, is_top_20)")
+      .select("id, team_id, locked, team:team_id(id, name, flag_emoji, country_code, is_top_20, eliminated)")
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase

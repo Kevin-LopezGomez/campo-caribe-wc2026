@@ -20,6 +20,7 @@ type PickedTeam = {
   flag_emoji: string;
   country_code: string;
   is_top_20: boolean;
+  eliminated: boolean;
 };
 
 export type CurrentPick = {
@@ -70,11 +71,13 @@ function TeamCard({
           : "",
         isSelected
           ? "border-primary bg-primary/10 ring-2 ring-primary ring-offset-1"
+          : team.eliminated
+          ? "border-red-500 bg-card ring-2 ring-red-500"
           : isQualified
           ? "border-green-500 bg-card ring-2 ring-green-500"
           : "border-border bg-card",
         isLocked && !isSelected ? "cursor-default" : "",
-        team.eliminated ? "opacity-40" : "",
+        team.eliminated ? "opacity-50 pointer-events-none" : "",
       ]
         .filter(Boolean)
         .join(" ")}
@@ -222,6 +225,13 @@ export function RideOrDieClient({
         )}
       </p>
 
+      {/* ── Eliminated pick warning ── */}
+      {currentPick && currentPick.team.eliminated && (
+        <div className="bg-red-500/10 border border-red-500 rounded-lg px-4 py-3 text-sm text-red-400 mb-4">
+          ⚠️ Your current pick ({currentPick.team.flag_emoji} {currentPick.team.name}) has been eliminated. Please choose a new team.
+        </div>
+      )}
+
       {/* ── Team grid (flat A-Z) ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {teams.map((team) => (
@@ -245,6 +255,10 @@ export function RideOrDieClient({
             Already qualified for the knockout rounds
           </span>
         )}
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-3 h-3 rounded-sm border-2 border-red-500" />
+          Eliminated
+        </span>
         {isLocked && <span>Pick counts shown after lock</span>}
       </div>
 
