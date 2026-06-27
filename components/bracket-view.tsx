@@ -250,6 +250,7 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
     container.scrollTo({ left: targetScroll, behavior: "smooth" });
   }, [activeRound]);
 
+  const roundIdx = ROUNDS.indexOf(activeRound);
   const currentMatches = byRound[activeRound];
   const nextRoundKey =
     roundIdx < ROUNDS.length - 1 ? ROUNDS[roundIdx + 1] : undefined;
@@ -263,8 +264,6 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
     () => buildPairs(currentMatches, nextMatchById),
     [currentMatches, nextMatchById]
   );
-
-  const roundIdx = ROUNDS.indexOf(activeRound);
 
   function handleTouchStart(e: React.TouchEvent) {
     touchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
