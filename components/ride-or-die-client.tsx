@@ -211,7 +211,7 @@ export function RideOrDieClient({
         ) : lockTime ? (
           <>
             <span>
-              Picks lock on <span className="font-medium text-foreground">{formatLockTime(lockTime)} AST</span>. You can change your pick any time before then.
+              Picks lock on <span className="font-medium text-green-500">{formatLockTime(lockTime)} AST</span>. You can change your pick any time before then.
             </span>
             <span className="block mt-1 text-xs text-green-500 font-medium">
               Deadline extended to allow Hawaii Farming employees to register and make their picks.
