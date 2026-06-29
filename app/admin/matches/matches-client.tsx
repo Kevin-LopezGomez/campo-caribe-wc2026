@@ -406,7 +406,15 @@ export function AdminMatchesClient({
                 <select
                   id="winner_team_id"
                   name="winner_team_id"
-                  defaultValue={activeMatch.winner_team_id ?? homeTeam.id}
+                  defaultValue={(() => {
+                    const hs = activeMatch.home_score;
+                    const as_ = activeMatch.away_score;
+                    if (hs !== null && as_ !== null) {
+                      if (hs > as_) return homeTeam.id;
+                      if (as_ > hs) return awayTeam.id;
+                    }
+                    return activeMatch.winner_team_id ?? homeTeam.id;
+                  })()}
                   className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
                   required
                 >

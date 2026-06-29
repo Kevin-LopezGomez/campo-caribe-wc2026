@@ -32,35 +32,57 @@ export async function enterMatchResult(
   }
 ): Promise<{ error?: string }> {
   const admin = createAdminClient();
-  const { error } = await admin.from("matches").update(data).eq("id", matchId);
+
+  // Fetch match teams so we can override winner_team_id from scores (avoids wrong-team data)
+  const { data: matchTeams } = await admin
+    .from("matches")
+    .select("team_home_id, team_away_id")
+    .eq("id", matchId)
+    .single();
+
+  const scoreWinnerId = matchTeams
+    ? data.home_score > data.away_score
+      ? matchTeams.team_home_id
+      : data.away_score > data.home_score
+      ? matchTeams.team_away_id
+      : null
+    : null;
+
+  const effectiveWinnerId = scoreWinnerId ?? data.winner_team_id;
+
+  const { error } = await admin
+    .from("matches")
+    .update({ ...data, winner_team_id: effectiveWinnerId })
+    .eq("id", matchId);
   if (error) return { error: error.message };
 
   if (data.status === "completed") {
-    // Bracket progression: slot winner into the next match
-    const { data: currentMatch } = await admin
+    // Bracket progression: slot effective winner into the next match
+    // matchTeams already fetched above — reuse next_match_id from it
+    const { data: currentMatchMeta } = await admin
       .from("matches")
-      .select("next_match_id, team_home_id, team_away_id")
+      .select("next_match_id")
       .eq("id", matchId)
       .single();
 
-    if (currentMatch?.next_match_id) {
+    if (currentMatchMeta?.next_match_id) {
       const { data: nextMatch } = await admin
         .from("matches")
         .select("team_home_id, team_away_id")
-        .eq("id", currentMatch.next_match_id)
+        .eq("id", currentMatchMeta.next_match_id)
         .single();
 
       if (nextMatch) {
         if (!nextMatch.team_home_id) {
           await admin
             .from("matches")
-            .update({ team_home_id: data.winner_team_id })
-            .eq("id", currentMatch.next_match_id);
+            .update({ team_home_id: effectiveWinnerId })
+            .eq("id", currentMatchMeta.next_match_id);
         } else if (!nextMatch.team_away_id) {
           await admin
             .from("matches")
-            .update({ team_away_id: data.winner_team_id })
-            .eq("id", currentMatch.next_match_id);
+            .update({ team_away_id: effectiveWinnerId })
+            .eq("id", currentMatchMeta.next_match_id);
         }
       }
     }
