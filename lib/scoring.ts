@@ -72,7 +72,7 @@ export async function computeUserScore(
   );
 
   // Derive actual winner from scores; fall back to DB field for ET/pen draws
-  function resolveWinner(m: typeof done[number]): string | null {
+  function resolveWinner(m: { home_score: number | null; away_score: number | null; team_home_id: string | null; team_away_id: string | null; winner_team_id: string | null }): string | null {
     if (m.home_score !== null && m.away_score !== null) {
       if (m.home_score > m.away_score) return m.team_home_id;
       if (m.away_score > m.home_score) return m.team_away_id;
