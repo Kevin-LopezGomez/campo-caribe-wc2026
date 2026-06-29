@@ -71,19 +71,30 @@ export async function computeUserScore(
     (userPicks ?? []).map((p) => [p.match_id, p])
   );
 
+  // Derive actual winner from scores; fall back to DB field for ET/pen draws
+  function resolveWinner(m: typeof done[number]): string | null {
+    if (m.home_score !== null && m.away_score !== null) {
+      if (m.home_score > m.away_score) return m.team_home_id;
+      if (m.away_score > m.home_score) return m.team_away_id;
+    }
+    return m.winner_team_id;
+  }
+
   const events: ScoringEvent[] = [];
 
   for (const m of done) {
     const pick = pickByMatch.get(m.id);
-    if (!pick || !m.winner_team_id) continue;
+    if (!pick) continue;
+    const winnerId = resolveWinner(m);
+    if (!winnerId) continue;
 
-    if (pick.winner_team_id === m.winner_team_id) {
+    if (pick.winner_team_id === winnerId) {
       events.push({
         user_id: userId,
         points: MATCH_POINTS[m.round as Round],
         reason: `Correct pick (${m.round})`,
         match_id: m.id,
-        team_id: m.winner_team_id,
+        team_id: winnerId,
       });
 
       if (
@@ -108,7 +119,7 @@ export async function computeUserScore(
     );
 
     for (const m of rodMatches) {
-      if (m.winner_team_id === rodTeamId) {
+      if (resolveWinner(m) === rodTeamId) {
         const base = ROD_POINTS[m.round as Round];
         const pts = isCinderella ? base * 2 : base;
         events.push({
@@ -125,9 +136,7 @@ export async function computeUserScore(
     if (finalDone && rodMatches.length > 0) {
       const allCorrect = rodMatches.every((m) => {
         const pick = pickByMatch.get(m.id);
-        return (
-          pick?.winner_team_id === rodTeamId && m.winner_team_id === rodTeamId
-        );
+        return pick?.winner_team_id === rodTeamId && resolveWinner(m) === rodTeamId;
       });
       if (allCorrect) {
         events.push({
