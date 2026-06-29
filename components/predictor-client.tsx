@@ -103,9 +103,18 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
   const isCompleted = match.status === "completed";
   const hasBothTeams = !!(match.team_home && match.team_away);
 
+  // Derive winner from score for regular-time decisions; fall back to DB field for ET/pen draws
+  const scoreWinnerId = (() => {
+    if (!isCompleted || match.home_score === null || match.away_score === null) return null;
+    if (match.home_score > match.away_score) return match.team_home?.id ?? null;
+    if (match.away_score > match.home_score) return match.team_away?.id ?? null;
+    return null;
+  })();
+  const displayWinnerId = scoreWinnerId ?? match.winner_team_id;
+
   const myPickCorrect =
-    isCompleted && match.myPick
-      ? match.myPick.winner_team_id === match.winner_team_id
+    isCompleted && match.myPick && displayWinnerId
+      ? match.myPick.winner_team_id === displayWinnerId
       : null;
 
   function handleSelect(teamId: string) {
@@ -180,13 +189,13 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
       {isCompleted ? (
         <div className="mb-3">
           <div className="flex items-center gap-2 text-sm font-semibold">
-            <span>
+            <span className={displayWinnerId && displayWinnerId !== home.id ? "opacity-40" : ""}>
               {home.flag_emoji} {home.name}
             </span>
             <span className="text-lg font-bold tabular-nums">
               {match.home_score ?? "?"} — {match.away_score ?? "?"}
             </span>
-            <span>
+            <span className={displayWinnerId && displayWinnerId !== away.id ? "opacity-40" : ""}>
               {away.name} {away.flag_emoji}
             </span>
           </div>
