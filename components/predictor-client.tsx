@@ -145,13 +145,23 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
   // TBD: teams not assigned yet
   if (!hasBothTeams) {
     return (
-      <div className="border border-border rounded-lg p-4 opacity-50">
+      <div className="border border-border rounded-lg p-4 opacity-60">
         <p className="text-xs text-muted-foreground mb-1">
           {formatKickoff(match.kickoff_time)} AST
         </p>
-        <p className="text-sm font-medium">TBD vs TBD</p>
+        <p className="text-sm font-medium">
+          {match.team_home
+            ? `${match.team_home.flag_emoji} ${match.team_home.name}`
+            : "TBD"}
+          <span className="text-muted-foreground font-normal"> vs </span>
+          {match.team_away
+            ? `${match.team_away.flag_emoji} ${match.team_away.name}`
+            : "TBD"}
+        </p>
         <p className="text-xs text-muted-foreground mt-1">
-          Teams not set yet
+          {match.team_home || match.team_away
+            ? "Waiting for opponent"
+            : "Teams not set yet"}
         </p>
       </div>
     );
