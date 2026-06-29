@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +26,7 @@ function formatKickoff(iso: string) {
 
 export function PredictorReminder() {
   const router = useRouter();
+  const pathname = usePathname();
   const [unpicked, setUnpicked] = useState<UnpickedMatch[]>([]);
   const [open, setOpen] = useState(false);
 
@@ -62,7 +63,7 @@ export function PredictorReminder() {
     }
 
     check();
-  }, []);
+  }, [pathname]);
 
   if (!open) return null;
 
