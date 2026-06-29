@@ -4,6 +4,36 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export async function resetMatchPick(
+  matchId: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Not authenticated." };
+
+  // Server-side lock check
+  const admin = createAdminClient();
+  const { data: match } = await admin
+    .from("matches")
+    .select("kickoff_time, status")
+    .eq("id", matchId)
+    .single();
+
+  if (!match) return { error: "Match not found." };
+  if (match.status !== "scheduled" || new Date(match.kickoff_time) <= new Date())
+    return { error: "Pick deadline has passed." };
+
+  const { error } = await supabase
+    .from("match_picks")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("match_id", matchId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/predictor");
+  return {};
+}
+
 export async function saveMatchPick(
   matchId: string,
   winnerId: string,

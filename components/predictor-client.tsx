@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Round, MatchStatus } from "@/lib/types/database";
-import { saveMatchPick } from "@/app/predictor/actions";
+import { saveMatchPick, resetMatchPick } from "@/app/predictor/actions";
 
 export type PredictorMatchData = {
   id: string;
@@ -298,6 +298,29 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
                 ? "Update Pick"
                 : "Save Pick"}
             </button>
+            {match.myPick && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMsg(null);
+                  startTransition(async () => {
+                    const result = await resetMatchPick(match.id);
+                    if (result.error) {
+                      setMsg({ text: result.error, ok: false });
+                    } else {
+                      setSelectedId(null);
+                      setHomeScore("");
+                      setAwayScore("");
+                      router.refresh();
+                    }
+                  });
+                }}
+                disabled={isPending}
+                className="text-xs text-muted-foreground hover:text-destructive transition-colors disabled:opacity-40"
+              >
+                Reset
+              </button>
+            )}
             {msg && (
               <span
                 className={`text-xs ${msg.ok ? "text-green-600" : "text-destructive"}`}
