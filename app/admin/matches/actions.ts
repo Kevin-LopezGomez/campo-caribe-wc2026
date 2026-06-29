@@ -51,16 +51,15 @@ export async function enterMatchResult(
         .single();
 
       if (nextMatch) {
-        const update: Record<string, string> = {};
         if (!nextMatch.team_home_id) {
-          update.team_home_id = data.winner_team_id;
-        } else if (!nextMatch.team_away_id) {
-          update.team_away_id = data.winner_team_id;
-        }
-        if (Object.keys(update).length > 0) {
           await admin
             .from("matches")
-            .update(update)
+            .update({ team_home_id: data.winner_team_id })
+            .eq("id", currentMatch.next_match_id);
+        } else if (!nextMatch.team_away_id) {
+          await admin
+            .from("matches")
+            .update({ team_away_id: data.winner_team_id })
             .eq("id", currentMatch.next_match_id);
         }
       }
@@ -109,14 +108,16 @@ export async function resetMatchResult(
       .single();
 
     if (nextMatch) {
-      const update: Record<string, null> = {};
       if (nextMatch.team_home_id === currentMatch.winner_team_id) {
-        update.team_home_id = null;
+        await admin
+          .from("matches")
+          .update({ team_home_id: null })
+          .eq("id", currentMatch.next_match_id);
       } else if (nextMatch.team_away_id === currentMatch.winner_team_id) {
-        update.team_away_id = null;
-      }
-      if (Object.keys(update).length > 0) {
-        await admin.from("matches").update(update).eq("id", currentMatch.next_match_id);
+        await admin
+          .from("matches")
+          .update({ team_away_id: null })
+          .eq("id", currentMatch.next_match_id);
       }
     }
   }
