@@ -108,6 +108,7 @@ export async function computeUserScore(
           points: EXACT_SCORE_BONUS,
           reason: `Exact score bonus (${m.round})`,
           match_id: m.id,
+          team_id: winnerId,
         });
       }
     }

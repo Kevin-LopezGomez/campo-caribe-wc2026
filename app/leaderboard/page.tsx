@@ -30,11 +30,11 @@ async function LeaderboardData() {
     .single();
   const canSeeTestUsers = ["admin", "dev"].includes(myProfile?.role ?? "");
 
-  const [lbRes, rodRes, scoresRes, tiebreakerMatchRes, lockRes, companyRes] = await Promise.all([
+  const [lbRes, rodRes, scoresRes, tiebreakerMatchRes, lockRes, companyRes, teamsRes] = await Promise.all([
     // get_leaderboard now returns role + is_test
     admin.rpc("get_leaderboard"),
     admin.from("ride_or_die_picks").select("user_id, team:team_id(name, flag_emoji)"),
-    admin.from("score_events").select("user_id, points, reason, created_at").order("created_at"),
+    admin.from("score_events").select("user_id, points, reason, created_at, team_id").order("created_at"),
     admin
       .from("matches")
       .select("id, round, winner_team_id")
@@ -42,12 +42,17 @@ async function LeaderboardData() {
       .eq("status", "completed"),
     admin.from("settings").select("value").eq("key", "ride_or_die_lock_time").maybeSingle(),
     admin.from("profiles").select("id, company"),
+    admin.from("teams").select("id, flag_emoji"),
   ]);
 
   type CompanyRow = { id: string; company: string | null };
   const companyData = companyRes.data as unknown as CompanyRow[] | null;
   const companyByUser = new Map(
     (companyData ?? []).map((p) => [p.id, p.company])
+  );
+
+  const teamFlagById = new Map(
+    (teamsRes.data ?? []).map((t) => [t.id, t.flag_emoji])
   );
 
   // Ride or Die picks are only revealed after the lock time has passed
@@ -65,11 +70,12 @@ async function LeaderboardData() {
   // Group score_events by user
   const eventsByUser = new Map<
     string,
-    Array<{ points: number; reason: string; created_at: string }>
+    Array<{ points: number; reason: string; created_at: string; flag_emoji?: string }>
   >();
   for (const e of scoresRes.data ?? []) {
     if (!eventsByUser.has(e.user_id)) eventsByUser.set(e.user_id, []);
-    eventsByUser.get(e.user_id)!.push(e);
+    const flag_emoji = e.team_id ? teamFlagById.get(e.team_id) : undefined;
+    eventsByUser.get(e.user_id)!.push({ ...e, flag_emoji });
   }
 
   // Build tiebreaker data: for F/SF/QF, fetch all picks

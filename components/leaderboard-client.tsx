@@ -20,7 +20,7 @@ export type LeaderboardRow = {
   rod_flag: string | null;
   rod_name: string | null;
   company: string | null;
-  score_events: Array<{ points: number; reason: string; created_at: string }>;
+  score_events: Array<{ points: number; reason: string; created_at: string; flag_emoji?: string }>;
 };
 
 const COMPANY_LOGO: Record<string, { src: string; alt: string }> = {
@@ -151,14 +151,20 @@ export function LeaderboardClient({
                   <p className="text-xs text-muted-foreground">No points yet</p>
                 ) : (
                   <div className="space-y-0.5 text-xs max-h-64 overflow-y-auto">
-                    {selected.score_events.map((e, i) => (
-                      <div key={i} className="flex gap-3">
-                        <span className="font-mono text-green-600 w-8 text-right shrink-0">
-                          +{e.points}
-                        </span>
-                        <span className="text-muted-foreground">{e.reason}</span>
-                      </div>
-                    ))}
+                    {selected.score_events.map((e, i) => {
+                      const isRod = e.reason.startsWith("Ride or Die") || e.reason.startsWith("Loyalty bonus");
+                      return (
+                        <div key={i} className="flex gap-3">
+                          <span className="font-mono text-green-600 w-8 text-right shrink-0">
+                            +{e.points}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {!isRod && e.flag_emoji && <span className="mr-1">{e.flag_emoji}</span>}
+                            {e.reason}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
