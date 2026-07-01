@@ -55,6 +55,36 @@ function formatKickoff(iso: string) {
   }).format(new Date(iso));
 }
 
+// R32 visual order by team name — bracket_slot may not be in PostgREST cache
+// yet since it's a newly added column. Derive order from known team assignments.
+const R32_SLOT_BY_TEAM: Record<string, number> = {
+  "Canada": 1,            "South Africa": 1,
+  "Morocco": 2,           "Netherlands": 2,
+  "Paraguay": 3,          "Germany": 3,
+  "France": 4,            "Sweden": 4,
+  "Belgium": 5,           "Senegal": 5,
+  "USA": 6,               "Bosnia and Herzegovina": 6,
+  "Spain": 7,             "Austria": 7,
+  "Portugal": 8,          "Croatia": 8,
+  "Brazil": 9,            "Japan": 9,
+  "Norway": 10,           "Côte d'Ivoire": 10,
+  "Mexico": 11,           "Ecuador": 11,
+  "England": 12,          "DR Congo": 12,
+  "Switzerland": 13,      "Algeria": 13,
+  "Colombia": 14,         "Ghana": 14,
+  "Australia": 15,        "Egypt": 15,
+  "Argentina": 16,        "Cabo Verde": 16,
+};
+
+function r32Slot(m: BracketMatch): number {
+  return (
+    R32_SLOT_BY_TEAM[m.team_home?.name ?? ""] ??
+    R32_SLOT_BY_TEAM[m.team_away?.name ?? ""] ??
+    m.bracket_slot ??
+    999
+  );
+}
+
 function groupByRound(matches: BracketMatch[]) {
   const grouped: Record<RoundKey, BracketMatch[]> = {
     R32: [],
@@ -67,9 +97,12 @@ function groupByRound(matches: BracketMatch[]) {
     const r = m.round as RoundKey;
     if (grouped[r]) grouped[r].push(m);
   }
-  for (const r of ROUNDS) {
+  // R32: sort by hardcoded team-name lookup (independent of PostgREST cache)
+  grouped["R32"].sort((a, b) => r32Slot(a) - r32Slot(b));
+  // R16+: kickoff_time is set to match bracket_slot order by migration 017
+  for (const r of ["R16", "QF", "SF", "F"] as const) {
     grouped[r].sort(
-      (a, b) => (a.bracket_slot ?? 999) - (b.bracket_slot ?? 999)
+      (a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
     );
   }
   return grouped;
