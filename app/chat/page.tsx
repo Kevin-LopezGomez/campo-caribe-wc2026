@@ -12,12 +12,11 @@ async function ChatData() {
 
   const admin = createAdminClient();
 
-  // Fetch current user profile and messages in parallel.
-  // Messages are fetched WITHOUT a join to avoid PostgREST schema-cache issues
-  // on newly-created tables; profiles are looked up separately.
+  // Fetch current user profile (admin client for role check) and messages
+  // (user client — authenticated users have SELECT on non-deleted rows).
   const [profileRes, messagesRes] = await Promise.all([
     admin.from("profiles").select("role, company").eq("id", user.id).single(),
-    admin
+    supabase
       .from("chat_messages")
       .select("id, user_id, message, created_at, deleted_at")
       .is("deleted_at", null)
@@ -29,12 +28,12 @@ async function ChatData() {
   const isAdmin = ["admin", "dev"].includes(profile?.role ?? "");
   const isDev = profile?.role === "dev";
 
-  // Fetch profiles for all unique senders
+  // Fetch sender profiles separately (avoids PostgREST join cache issues)
   const msgData = messagesRes.data ?? [];
   const userIds = [...new Set(msgData.map((m) => m.user_id))];
   const profileMap = new Map<string, { full_name: string; company: string | null }>();
   if (userIds.length > 0) {
-    const { data: senderProfiles } = await admin
+    const { data: senderProfiles } = await supabase
       .from("profiles")
       .select("id, full_name, company")
       .in("id", userIds);
