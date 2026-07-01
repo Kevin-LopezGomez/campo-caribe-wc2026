@@ -22,6 +22,8 @@ export interface Database {
           role: UserRole;
           is_test: boolean;
           created_at: string;
+          company: string | null;
+          last_chat_visit_at: string | null;
         };
         Insert: {
           id: string;
@@ -30,6 +32,8 @@ export interface Database {
           role?: UserRole;
           is_test?: boolean;
           created_at?: string;
+          company?: string | null;
+          last_chat_visit_at?: string | null;
         };
         Update: {
           id?: string;
@@ -38,6 +42,8 @@ export interface Database {
           role?: UserRole;
           is_test?: boolean;
           created_at?: string;
+          company?: string | null;
+          last_chat_visit_at?: string | null;
         };
         Relationships: [];
       };
@@ -254,6 +260,30 @@ export interface Database {
         };
         Relationships: [];
       };
+      chat_messages: {
+        Row: {
+          id: string;
+          user_id: string;
+          message: string;
+          created_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          message: string;
+          created_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          message?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -293,6 +323,7 @@ export type RideOrDiePick    = Database["public"]["Tables"]["ride_or_die_picks"]
 export type MatchPick        = Database["public"]["Tables"]["match_picks"]["Row"];
 export type ScoreEvent       = Database["public"]["Tables"]["score_events"]["Row"];
 export type Setting          = Database["public"]["Tables"]["settings"]["Row"];
+export type ChatMessage      = Database["public"]["Tables"]["chat_messages"]["Row"];
 
 // ---- Composite/derived types ----
 export type LeaderboardEntry = {

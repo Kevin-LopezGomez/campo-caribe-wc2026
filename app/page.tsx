@@ -20,11 +20,11 @@ async function Dashboard() {
 
   const admin = createAdminClient();
 
-  const [profileResult, rodPickResult, pickCountResult, pickableResult] =
+  const [profileResult, rodPickResult, pickCountResult, pickableResult, latestChatRes] =
     await Promise.all([
       supabase
         .from("profiles")
-        .select("full_name, role")
+        .select("full_name, role, last_chat_visit_at")
         .eq("id", user.id)
         .single(),
       supabase
@@ -41,10 +41,24 @@ async function Dashboard() {
         .select("id", { count: "exact", head: true })
         .not("team_home_id", "is", null)
         .not("team_away_id", "is", null),
+      admin
+        .from("chat_messages")
+        .select("message, created_at, profile:user_id(full_name, company)")
+        .is("deleted_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
 
   const profile = profileResult.data;
   const role: UserRole = profile?.role ?? "user";
+
+  type LatestChat = { message: string; created_at: string; profile: { full_name: string; company: string | null } | null } | null;
+  const latestChat = latestChatRes.data as unknown as LatestChat;
+  const lastVisit = profile?.last_chat_visit_at ?? null;
+  const hasUnread = latestChat
+    ? !lastVisit || new Date(latestChat.created_at) > new Date(lastVisit)
+    : false;
   const rodPick = rodPickResult.data as RodPick;
   const picksMade = pickCountResult.count ?? 0;
   const picksOf = pickableResult.count ?? 0;
@@ -168,6 +182,38 @@ async function Dashboard() {
           </p>
           <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
             View bracket →
+          </span>
+        </Link>
+
+        {/* Chat */}
+        <Link
+          href="/chat"
+          className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block relative"
+        >
+          {hasUnread && (
+            <span className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-primary" />
+          )}
+          <h2 className="font-semibold text-lg mb-2">💬 Chat</h2>
+          {latestChat ? (
+            <div className="mb-3">
+              <p className="text-xs text-muted-foreground mb-0.5">Latest message</p>
+              <p className="text-sm text-foreground line-clamp-2">
+                <span className="font-medium">
+                  {latestChat.profile?.full_name?.includes(",")
+                    ? latestChat.profile.full_name.split(",")[1]?.trim().split(" ")[0]
+                    : latestChat.profile?.full_name?.split(" ")[0] ?? "Someone"}
+                  :{" "}
+                </span>
+                {latestChat.message.slice(0, 60)}{latestChat.message.length > 60 ? "…" : ""}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground mb-3">
+              Talk trash, share predictions, celebrate goals.
+            </p>
+          )}
+          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+            Open chat →
           </span>
         </Link>
       </div>

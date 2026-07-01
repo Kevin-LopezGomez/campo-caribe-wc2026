@@ -12,6 +12,7 @@ const BASE_LINKS = [
   { href: "/ride-or-die", label: "Ride or Die" },
   { href: "/predictor", label: "Predictor" },
   { href: "/leaderboard", label: "Leaderboard" },
+  { href: "/chat", label: "Chat" },
 ] as const;
 
 const ADMIN_LINKS = [
@@ -19,6 +20,7 @@ const ADMIN_LINKS = [
   { href: "/admin/matches", label: "Matches" },
   { href: "/admin/settings", label: "Settings" },
   { href: "/admin/employees", label: "Employees" },
+  { href: "/admin/chat", label: "Chat Mod" },
 ] as const;
 
 const DEV_LINKS = [{ href: "/dev", label: "Dev" }] as const;
