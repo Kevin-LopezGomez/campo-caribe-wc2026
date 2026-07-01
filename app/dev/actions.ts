@@ -225,6 +225,10 @@ export async function fixPartialScorePicks(): Promise<{ error?: string; fixed?: 
 }
 
 export async function recalculateAllScores(): Promise<{ error?: string; count?: number }> {
+  // Always fix partial score picks first so exact-score bonuses are not missed
+  const fixResult = await fixPartialScorePicks();
+  if (fixResult.error) return { error: fixResult.error };
+
   const admin = createAdminClient();
   const { data: profiles } = await admin.from("profiles").select("id");
   let count = 0;
