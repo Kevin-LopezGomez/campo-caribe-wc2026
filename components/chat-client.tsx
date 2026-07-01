@@ -231,6 +231,11 @@ export function ChatClient({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function autoResize(el: HTMLTextAreaElement) {
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }
+
   function handleSend() {
     const text = input.trim();
     if (!text || text.length > 500 || isPending) return;
@@ -241,6 +246,9 @@ export function ChatClient({
         setSendError(result.error);
       } else {
         setInput("");
+        if (inputRef.current) {
+          inputRef.current.style.height = "auto";
+        }
       }
     });
   }
@@ -328,14 +336,18 @@ export function ChatClient({
             <textarea
               ref={inputRef}
               value={input}
-              onChange={(e) => { setInput(e.target.value); setSendError(null); }}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setSendError(null);
+                autoResize(e.target);
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Message the group…"
               rows={1}
               className={`w-full resize-none rounded-lg border px-3 py-2 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 transition-colors ${
                 overLimit ? "border-destructive focus:ring-destructive/30" : "border-input focus:ring-primary/30"
               }`}
-              style={{ maxHeight: "120px", overflowY: "auto" }}
+              style={{ maxHeight: "160px", overflowY: "auto" }}
             />
           </div>
           <button
