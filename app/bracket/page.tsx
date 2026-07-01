@@ -17,7 +17,7 @@ async function BracketData() {
     .select(
       "*, team_home:team_home_id(*), team_away:team_away_id(*), winner_team:winner_team_id(*)"
     )
-    .order("kickoff_time", { ascending: true });
+    .order("bracket_slot", { ascending: true, nullsFirst: false });
 
   if (error) {
     return (

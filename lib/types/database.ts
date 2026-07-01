@@ -128,6 +128,7 @@ export interface Database {
           home_score: number | null;
           away_score: number | null;
           next_match_id: string | null;
+          bracket_slot: number | null;
         };
         Insert: {
           id?: string;
@@ -140,6 +141,7 @@ export interface Database {
           home_score?: number | null;
           away_score?: number | null;
           next_match_id?: string | null;
+          bracket_slot?: number | null;
         };
         Update: {
           id?: string;
@@ -152,6 +154,7 @@ export interface Database {
           home_score?: number | null;
           away_score?: number | null;
           next_match_id?: string | null;
+          bracket_slot?: number | null;
         };
         Relationships: [];
       };

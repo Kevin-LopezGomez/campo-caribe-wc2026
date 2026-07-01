@@ -26,6 +26,7 @@ export type BracketMatch = {
   away_score: number | null;
   next_match_id: string | null;
   winner_team_id: string | null;
+  bracket_slot: number | null;
   team_home: TeamSnap | null;
   team_away: TeamSnap | null;
   winner_team: TeamSnap | null;
@@ -68,8 +69,7 @@ function groupByRound(matches: BracketMatch[]) {
   }
   for (const r of ROUNDS) {
     grouped[r].sort(
-      (a, b) =>
-        new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
+      (a, b) => (a.bracket_slot ?? 999) - (b.bracket_slot ?? 999)
     );
   }
   return grouped;
@@ -114,19 +114,14 @@ function buildPairs(
 
   for (const [nextId, sources] of byNextId) {
     sources.sort(
-      (a, b) =>
-        new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
+      (a, b) => (a.bracket_slot ?? 999) - (b.bracket_slot ?? 999)
     );
     pairs.push({ sources, dest: nextMatchById.get(nextId) ?? null });
   }
 
   pairs.sort((a, b) => {
-    const at = a.sources[0]
-      ? new Date(a.sources[0].kickoff_time).getTime()
-      : 0;
-    const bt = b.sources[0]
-      ? new Date(b.sources[0].kickoff_time).getTime()
-      : 0;
+    const at = a.sources[0]?.bracket_slot ?? 999;
+    const bt = b.sources[0]?.bracket_slot ?? 999;
     return at - bt;
   });
 
