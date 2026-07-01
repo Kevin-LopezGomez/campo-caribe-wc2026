@@ -125,13 +125,19 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
 
   function handleSubmit() {
     if (!selectedId || isLocked) return;
+    const hasHome = homeScore !== "";
+    const hasAway = awayScore !== "";
+    if (hasHome !== hasAway) {
+      setMsg({ text: "Enter both scores or leave both empty.", ok: false });
+      return;
+    }
     setMsg(null);
     startTransition(async () => {
       const result = await saveMatchPick(
         match.id,
         selectedId,
-        homeScore !== "" ? parseInt(homeScore, 10) : null,
-        awayScore !== "" ? parseInt(awayScore, 10) : null
+        hasHome ? parseInt(homeScore, 10) : null,
+        hasAway ? parseInt(awayScore, 10) : null
       );
       if (result.error) {
         setMsg({ text: result.error, ok: false });
@@ -220,8 +226,8 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
               >
                 {myPickCorrect ? "✓" : "✗"}{" "}
                 {match.myPick.winner_team_id === home.id ? home.name : away.name}
-                {match.myPick.predicted_home_score !== null &&
-                  ` (${match.myPick.predicted_home_score}-${match.myPick.predicted_away_score})`}
+                {(match.myPick.predicted_home_score !== null || match.myPick.predicted_away_score !== null) &&
+                  ` (${match.myPick.predicted_home_score ?? 0}-${match.myPick.predicted_away_score ?? 0})`}
               </span>
             </p>
           ) : (
@@ -352,8 +358,8 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
                 {match.myPick.winner_team_id === home.id
                   ? `${home.flag_emoji} ${home.name}`
                   : `${away.flag_emoji} ${away.name}`}
-                {match.myPick.predicted_home_score !== null &&
-                  ` — predicted ${match.myPick.predicted_home_score}–${match.myPick.predicted_away_score}`}
+                {(match.myPick.predicted_home_score !== null || match.myPick.predicted_away_score !== null) &&
+                  ` — predicted ${match.myPick.predicted_home_score ?? 0}–${match.myPick.predicted_away_score ?? 0}`}
               </span>
             </p>
           ) : (

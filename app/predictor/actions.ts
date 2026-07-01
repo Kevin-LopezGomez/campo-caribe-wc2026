@@ -63,6 +63,8 @@ export async function saveMatchPick(
     return { error: "Pick deadline has passed. Match has kicked off." };
   if (winnerId !== match.team_home_id && winnerId !== match.team_away_id)
     return { error: "Invalid team selection." };
+  if ((predictedHomeScore === null) !== (predictedAwayScore === null))
+    return { error: "Both scores must be provided together, or leave both empty." };
 
   const { error } = await supabase.from("match_picks").upsert(
     {
