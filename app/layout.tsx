@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PredictorReminder } from "@/components/predictor-reminder";
+import { ChatAnnouncement } from "@/components/chat-announcement";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -43,6 +44,7 @@ export default function RootLayout({
         >
           {children}
           <PredictorReminder />
+          <ChatAnnouncement />
           <Analytics />
           <SpeedInsights />
         </ThemeProvider>
