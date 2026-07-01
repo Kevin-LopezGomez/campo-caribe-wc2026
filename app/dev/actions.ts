@@ -199,6 +199,31 @@ export async function teardownTestData(): Promise<{ error?: string }> {
   return {};
 }
 
+export async function fixPartialScorePicks(): Promise<{ error?: string; fixed?: number }> {
+  const admin = createAdminClient();
+
+  // home set, away null → set away to 0
+  const { data: awayNull, error: e1 } = await admin
+    .from("match_picks")
+    .update({ predicted_away_score: 0 })
+    .not("predicted_home_score", "is", null)
+    .is("predicted_away_score", null)
+    .select("match_id");
+  if (e1) return { error: e1.message };
+
+  // away set, home null → set home to 0
+  const { data: homeNull, error: e2 } = await admin
+    .from("match_picks")
+    .update({ predicted_home_score: 0 })
+    .not("predicted_away_score", "is", null)
+    .is("predicted_home_score", null)
+    .select("match_id");
+  if (e2) return { error: e2.message };
+
+  const fixed = (awayNull?.length ?? 0) + (homeNull?.length ?? 0);
+  return { fixed };
+}
+
 export async function recalculateAllScores(): Promise<{ error?: string; count?: number }> {
   const admin = createAdminClient();
   const { data: profiles } = await admin.from("profiles").select("id");

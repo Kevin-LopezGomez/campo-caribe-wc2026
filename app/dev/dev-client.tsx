@@ -11,6 +11,7 @@ import {
   getUserBreakdown,
   getMatchDetail,
   bulkRegisterHawaiiFarming,
+  fixPartialScorePicks,
   type UserBreakdown,
   type MatchDetail,
   type DevStats,
@@ -344,6 +345,12 @@ function BulkActionsPanel() {
       </div>
       {/* Production score tools */}
       <div className="flex flex-wrap gap-2">
+        <ActionButton
+          label="Fix Partial Score Picks"
+          pendingLabel="Fixing…"
+          pending={isPending}
+          onClick={() => run(() => fixPartialScorePicks().then((r) => ({ ...r, count: r.fixed })), "Fixed partial picks")}
+        />
         <ActionButton
           label="Recalculate All Scores"
           pendingLabel="Recalculating…"
