@@ -15,7 +15,7 @@ async function BracketData() {
   const { data: matches, error } = await supabase
     .from("matches")
     .select(
-      "*, team_home:team_home_id(*), team_away:team_away_id(*), winner_team:winner_team_id(*)"
+      "id, round, kickoff_time, status, home_score, away_score, next_match_id, winner_team_id, bracket_slot, team_home:team_home_id(*), team_away:team_away_id(*), winner_team:winner_team_id(*)"
     )
     .order("bracket_slot", { ascending: true, nullsFirst: false });
 

@@ -98,37 +98,17 @@ function buildPairs(
   currentMatches: BracketMatch[],
   nextMatchById: Map<string, BracketMatch>
 ): BracketPair[] {
-  const byNextId = new Map<string, BracketMatch[]>();
-  const noNext: BracketMatch[] = [];
-
-  for (const m of currentMatches) {
-    if (m.next_match_id) {
-      if (!byNextId.has(m.next_match_id)) byNextId.set(m.next_match_id, []);
-      byNextId.get(m.next_match_id)!.push(m);
-    } else {
-      noNext.push(m);
-    }
-  }
-
+  // currentMatches is already sorted by bracket_slot ASC.
+  // Group consecutive pairs (slots 1+2, 3+4, 5+6, …) — the bracket_slot
+  // assignments guarantee each consecutive pair feeds the same next match.
   const pairs: BracketPair[] = [];
-
-  for (const [nextId, sources] of byNextId) {
-    sources.sort(
-      (a, b) => (a.bracket_slot ?? 999) - (b.bracket_slot ?? 999)
-    );
-    pairs.push({ sources, dest: nextMatchById.get(nextId) ?? null });
+  for (let i = 0; i < currentMatches.length; i += 2) {
+    const a = currentMatches[i];
+    const b = currentMatches[i + 1]; // undefined for odd-length rounds (Final)
+    const sources = b ? [a, b] : [a];
+    const dest = a.next_match_id ? (nextMatchById.get(a.next_match_id) ?? null) : null;
+    pairs.push({ sources, dest });
   }
-
-  pairs.sort((a, b) => {
-    const at = a.sources[0]?.bracket_slot ?? 999;
-    const bt = b.sources[0]?.bracket_slot ?? 999;
-    return at - bt;
-  });
-
-  for (const m of noNext) {
-    pairs.push({ sources: [m], dest: null });
-  }
-
   return pairs;
 }
 
