@@ -12,15 +12,14 @@ async function ChatData() {
 
   const admin = createAdminClient();
 
+  // Fetch current user profile and messages in parallel.
+  // Messages are fetched WITHOUT a join to avoid PostgREST schema-cache issues
+  // on newly-created tables; profiles are looked up separately.
   const [profileRes, messagesRes] = await Promise.all([
-    admin
-      .from("profiles")
-      .select("role, company")
-      .eq("id", user.id)
-      .single(),
+    admin.from("profiles").select("role, company").eq("id", user.id).single(),
     admin
       .from("chat_messages")
-      .select("id, user_id, message, created_at, deleted_at, profile:user_id(full_name, company)")
+      .select("id, user_id, message, created_at, deleted_at")
       .is("deleted_at", null)
       .order("created_at", { ascending: true })
       .limit(100),
@@ -30,18 +29,34 @@ async function ChatData() {
   const isAdmin = ["admin", "dev"].includes(profile?.role ?? "");
   const isDev = profile?.role === "dev";
 
+  // Fetch profiles for all unique senders
+  const msgData = messagesRes.data ?? [];
+  const userIds = [...new Set(msgData.map((m) => m.user_id))];
+  const profileMap = new Map<string, { full_name: string; company: string | null }>();
+  if (userIds.length > 0) {
+    const { data: senderProfiles } = await admin
+      .from("profiles")
+      .select("id, full_name, company")
+      .in("id", userIds);
+    for (const p of senderProfiles ?? []) {
+      profileMap.set(p.id, { full_name: p.full_name, company: p.company });
+    }
+  }
+
+  const messages: ChatMessageWithProfile[] = msgData.map((m) => ({
+    ...m,
+    profile: profileMap.get(m.user_id) ?? null,
+  }));
+
   // Mark last visit
   await supabase
     .from("profiles")
     .update({ last_chat_visit_at: new Date().toISOString() } as never)
     .eq("id", user.id);
 
-  const messages = (messagesRes.data ?? []) as unknown as ChatMessageWithProfile[];
-
   return (
     <ChatClient
       initialMessages={messages}
-      currentUserId={user.id}
       isAdmin={isAdmin}
       isDev={isDev}
     />

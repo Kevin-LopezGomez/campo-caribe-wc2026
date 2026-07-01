@@ -135,12 +135,10 @@ function MessageRow({
 
 export function ChatClient({
   initialMessages,
-  currentUserId,
   isAdmin,
   isDev,
 }: {
   initialMessages: ChatMessageWithProfile[];
-  currentUserId: string;
   isAdmin: boolean;
   isDev: boolean;
 }) {
@@ -194,13 +192,21 @@ export function ChatClient({
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },
         async (payload) => {
-          const { data } = await supabase
+          const { data: row } = await supabase
             .from("chat_messages")
-            .select("id, user_id, message, created_at, deleted_at, profile:user_id(full_name, company)")
+            .select("id, user_id, message, created_at, deleted_at")
             .eq("id", payload.new.id)
             .single();
-          if (!data) return;
-          const msg = data as unknown as ChatMessageWithProfile;
+          if (!row) return;
+          const { data: sender } = await supabase
+            .from("profiles")
+            .select("full_name, company")
+            .eq("id", row.user_id)
+            .single();
+          const msg: ChatMessageWithProfile = {
+            ...row,
+            profile: sender ?? null,
+          };
           setMessages((prev) => {
             if (prev.some((m) => m.id === msg.id)) return prev;
             return [...prev, msg];
