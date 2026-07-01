@@ -8,11 +8,11 @@ import { createClient } from "@/lib/supabase/client";
 import { LogoutButton } from "@/components/logout-button";
 
 const BASE_LINKS = [
+  { href: "/chat", label: "Chat" },
   { href: "/bracket", label: "Bracket" },
   { href: "/ride-or-die", label: "Ride or Die" },
   { href: "/predictor", label: "Predictor" },
   { href: "/leaderboard", label: "Leaderboard" },
-  { href: "/chat", label: "Chat" },
 ] as const;
 
 const ADMIN_LINKS = [
