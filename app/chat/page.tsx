@@ -1,10 +1,11 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AppNav } from "@/components/app-nav";
 import { ChatClient, type ChatMessageWithProfile } from "@/components/chat-client";
 
-export default async function ChatPage() {
+async function ChatData() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login");
@@ -14,7 +15,7 @@ export default async function ChatPage() {
   const [profileRes, messagesRes] = await Promise.all([
     admin
       .from("profiles")
-      .select("full_name, role, company")
+      .select("role, company")
       .eq("id", user.id)
       .single(),
     admin
@@ -29,7 +30,7 @@ export default async function ChatPage() {
   const isAdmin = ["admin", "dev"].includes(profile?.role ?? "");
   const isDev = profile?.role === "dev";
 
-  // Mark visit (fire-and-forget on server)
+  // Mark last visit
   await supabase
     .from("profiles")
     .update({ last_chat_visit_at: new Date().toISOString() } as never)
@@ -38,14 +39,22 @@ export default async function ChatPage() {
   const messages = (messagesRes.data ?? []) as unknown as ChatMessageWithProfile[];
 
   return (
+    <ChatClient
+      initialMessages={messages}
+      currentUserId={user.id}
+      isAdmin={isAdmin}
+      isDev={isDev}
+    />
+  );
+}
+
+export default function ChatPage() {
+  return (
     <div className="min-h-screen flex flex-col bg-background">
       <AppNav />
-      <ChatClient
-        initialMessages={messages}
-        currentUserId={user.id}
-        isAdmin={isAdmin}
-        isDev={isDev}
-      />
+      <Suspense fallback={<div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">Loading chat…</div>}>
+        <ChatData />
+      </Suspense>
     </div>
   );
 }
