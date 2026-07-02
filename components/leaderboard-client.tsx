@@ -94,11 +94,11 @@ export function LeaderboardClient({
                           className="rounded-sm shrink-0 object-contain"
                         />
                       )}
-                      {rodRevealed && row.rod_flag && (
-                        <span className="text-base shrink-0">{row.rod_flag}</span>
-                      )}
                       <span>
                         <span className="font-medium">{row.full_name}</span>
+                        {rodRevealed && row.rod_flag && (
+                          <span className="ml-1.5 text-base">{row.rod_flag}</span>
+                        )}
                         {isMe && (
                           <span className="ml-2 text-xs text-primary font-semibold">you</span>
                         )}
