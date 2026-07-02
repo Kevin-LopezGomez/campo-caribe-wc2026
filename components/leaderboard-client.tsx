@@ -66,7 +66,6 @@ export function LeaderboardClient({
             <tr>
               <th className="text-left px-4 py-2 w-12">#</th>
               <th className="text-left px-4 py-2">Name</th>
-              {rodRevealed && <th className="text-left px-4 py-2 hidden sm:table-cell">Ride or Die</th>}
               <th className="text-right px-4 py-2">Points</th>
             </tr>
           </thead>
@@ -95,6 +94,9 @@ export function LeaderboardClient({
                           className="rounded-sm shrink-0 object-contain"
                         />
                       )}
+                      {rodRevealed && row.rod_flag && (
+                        <span className="text-base shrink-0">{row.rod_flag}</span>
+                      )}
                       <span>
                         <span className="font-medium">{row.full_name}</span>
                         {isMe && (
@@ -106,11 +108,6 @@ export function LeaderboardClient({
                       </span>
                     </div>
                   </td>
-                  {rodRevealed && (
-                    <td className="px-4 py-2.5 hidden sm:table-cell text-muted-foreground">
-                      {row.rod_flag ? `${row.rod_flag} ${row.rod_name}` : "—"}
-                    </td>
-                  )}
                   <td className="px-4 py-2.5 text-right font-semibold tabular-nums">
                     {row.total_points}
                   </td>
@@ -119,7 +116,7 @@ export function LeaderboardClient({
             })}
             {visible.length === 0 && (
               <tr>
-                <td colSpan={rodRevealed ? 4 : 3} className="px-4 py-8 text-center text-sm text-muted-foreground">
+                <td colSpan={3} className="px-4 py-8 text-center text-sm text-muted-foreground">
                   No participants yet
                 </td>
               </tr>
