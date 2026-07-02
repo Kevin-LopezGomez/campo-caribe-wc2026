@@ -353,7 +353,7 @@ export function ChatClient({
               className={`w-full resize-none rounded-lg border px-3 py-2 text-sm bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 transition-colors ${
                 overLimit ? "border-destructive focus:ring-destructive/30" : "border-input focus:ring-primary/30"
               }`}
-              style={{ maxHeight: "160px", overflowY: "auto" }}
+              style={{ maxHeight: "160px", overflowY: "auto", fontSize: "16px" }}
             />
           </div>
           <button

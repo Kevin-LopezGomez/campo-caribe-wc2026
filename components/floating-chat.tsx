@@ -333,7 +333,7 @@ export function FloatingChat() {
                     ? "border-destructive focus:ring-destructive/30"
                     : "border-input focus:ring-primary/30"
                 }`}
-                style={{ maxHeight: "80px", overflowY: "auto" }}
+                style={{ maxHeight: "80px", overflowY: "auto", fontSize: "16px" }}
               />
               <button
                 onClick={handleSend}
