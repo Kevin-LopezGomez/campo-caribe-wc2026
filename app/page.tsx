@@ -98,50 +98,6 @@ async function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Ride or Die */}
-        <Link
-          href="/ride-or-die"
-          className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
-        >
-          <h2 className="font-semibold text-lg mb-2">🎯 Ride or Die</h2>
-          {rodPick?.team ? (
-            <div className="mb-3">
-              <p className="text-xs text-muted-foreground mb-0.5">Your pick</p>
-              <p className="text-xl font-bold">
-                {rodPick.team.flag_emoji} {rodPick.team.name}
-              </p>
-              {!rodPick.team.is_top_20 && (
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  🌟 Cinderella — 2× points
-                </p>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground mb-3">
-              Pick one team and earn points every round they advance.
-            </p>
-          )}
-          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-            {rodPick?.team ? "Change pick →" : "Pick a team →"}
-          </span>
-        </Link>
-
-        {/* Match Predictor */}
-        <Link
-          href="/predictor"
-          className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
-        >
-          <h2 className="font-semibold text-lg mb-2">🔮 Match Predictor</h2>
-          <p className="text-sm text-muted-foreground mb-3">
-            Pick the winner of every knockout match before kickoff.
-          </p>
-          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-            {picksOf > 0
-              ? `${picksMade} of ${picksOf} picks →`
-              : "View matches →"}
-          </span>
-        </Link>
-
         {/* Leaderboard */}
         <Link
           href="/leaderboard"
@@ -214,6 +170,50 @@ async function Dashboard() {
           )}
           <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
             Open chat →
+          </span>
+        </Link>
+
+        {/* Ride or Die */}
+        <Link
+          href="/ride-or-die"
+          className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
+        >
+          <h2 className="font-semibold text-lg mb-2">🎯 Ride or Die</h2>
+          {rodPick?.team ? (
+            <div className="mb-3">
+              <p className="text-xs text-muted-foreground mb-0.5">Your pick</p>
+              <p className="text-xl font-bold">
+                {rodPick.team.flag_emoji} {rodPick.team.name}
+              </p>
+              {!rodPick.team.is_top_20 && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  🌟 Cinderella — 2× points
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground mb-3">
+              Pick one team and earn points every round they advance.
+            </p>
+          )}
+          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+            {rodPick?.team ? "Change pick →" : "Pick a team →"}
+          </span>
+        </Link>
+
+        {/* Match Predictor */}
+        <Link
+          href="/predictor"
+          className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
+        >
+          <h2 className="font-semibold text-lg mb-2">🔮 Match Predictor</h2>
+          <p className="text-sm text-muted-foreground mb-3">
+            Pick the winner of every knockout match before kickoff.
+          </p>
+          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+            {picksOf > 0
+              ? `${picksMade} of ${picksOf} picks →`
+              : "View matches →"}
           </span>
         </Link>
       </div>
