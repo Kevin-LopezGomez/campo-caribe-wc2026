@@ -23,6 +23,12 @@ export type LeaderboardRow = {
   score_events: Array<{ points: number; reason: string; created_at: string; flag_emoji?: string }>;
 };
 
+function formatName(full_name: string): string {
+  const comma = full_name.indexOf(",");
+  if (comma === -1) return full_name;
+  return `${full_name.slice(comma + 1).trim()} ${full_name.slice(0, comma).trim()}`;
+}
+
 const COMPANY_LOGO: Record<string, { src: string; alt: string }> = {
   "Campo Caribe": { src: "/logo.png", alt: "Campo Caribe" },
   "Hawaii Farming": { src: "/hawaii-farming-logo.avif", alt: "Hawaii Farming" },
@@ -95,7 +101,7 @@ export function LeaderboardClient({
                         />
                       )}
                       <span>
-                        <span className="font-medium">{row.full_name}</span>
+                        <span className="font-medium">{formatName(row.full_name)}</span>
                         {rodRevealed && row.rod_flag && (
                           <span className="ml-1.5 text-base">{row.rod_flag}</span>
                         )}
@@ -129,7 +135,7 @@ export function LeaderboardClient({
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{selected?.full_name}</DialogTitle>
+            <DialogTitle>{selected ? formatName(selected.full_name) : ""}</DialogTitle>
           </DialogHeader>
           {selected && (
             <div className="space-y-3">
