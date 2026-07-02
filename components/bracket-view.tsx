@@ -99,12 +99,25 @@ function groupByRound(matches: BracketMatch[]) {
   }
   // R32: sort by hardcoded team-name lookup (independent of PostgREST cache)
   grouped["R32"].sort((a, b) => r32Slot(a) - r32Slot(b));
-  // R16+: kickoff_time is set to match bracket_slot order by migration 017
-  for (const r of ["R16", "QF", "SF", "F"] as const) {
+  // QF, SF, F: sort by kickoff_time (QF must be sorted before R16 sort below)
+  for (const r of ["QF", "SF", "F"] as const) {
     grouped[r].sort(
       (a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
     );
   }
+  // R16: sort by dest QF kickoff_time so the QF preview cards appear in
+  // chronological order (Jul9→Jul10→Jul11→Jul11). Within the same QF, sort
+  // by own kickoff_time. Without this, R16-3/4 (→QF3 Jul11) appears above
+  // R16-5/6 (→QF2 Jul10), making the QF dates look out of order.
+  const qfById = new Map(grouped["QF"].map((m) => [m.id, m]));
+  grouped["R16"].sort((a, b) => {
+    const qfA = a.next_match_id ? qfById.get(a.next_match_id) : undefined;
+    const qfB = b.next_match_id ? qfById.get(b.next_match_id) : undefined;
+    const tA = qfA ? new Date(qfA.kickoff_time).getTime() : Infinity;
+    const tB = qfB ? new Date(qfB.kickoff_time).getTime() : Infinity;
+    if (tA !== tB) return tA - tB;
+    return new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime();
+  });
   return grouped;
 }
 
