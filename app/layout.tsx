@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PredictorReminder } from "@/components/predictor-reminder";
 import { ChatAnnouncement } from "@/components/chat-announcement";
+import { FloatingChat } from "@/components/floating-chat";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -45,6 +46,7 @@ export default function RootLayout({
           {children}
           <PredictorReminder />
           <ChatAnnouncement />
+          <FloatingChat />
           <Analytics />
           <SpeedInsights />
         </ThemeProvider>
