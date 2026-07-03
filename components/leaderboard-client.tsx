@@ -67,8 +67,9 @@ export function LeaderboardClient({
       )}
 
       <div className="border border-border rounded-lg overflow-hidden">
+        <div className="overflow-y-auto max-h-[580px]">
         <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
+          <thead className="bg-muted text-xs text-muted-foreground uppercase tracking-wide sticky top-0 z-10">
             <tr>
               <th className="text-left px-4 py-2 w-12">#</th>
               <th className="text-left px-4 py-2">Name</th>
@@ -129,6 +130,7 @@ export function LeaderboardClient({
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {/* Score breakdown dialog */}

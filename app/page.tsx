@@ -5,11 +5,52 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { AppNav } from "@/components/app-nav";
+import { getFarmVsFarmData } from "@/lib/farm-vs-farm";
 import type { UserRole } from "@/lib/types/database";
 
 type RodPick = {
   team: { name: string; flag_emoji: string; is_top_20: boolean } | null;
 } | null;
+
+async function FarmVsFarmCard() {
+  const { cc, hf } = await getFarmVsFarmData();
+  const ccPct = Math.round(cc.teamAccuracy * 100);
+  const hfPct = Math.round(hf.teamAccuracy * 100);
+  const diff = Math.abs(ccPct - hfPct);
+  const leader =
+    ccPct > hfPct ? "Campo Caribe" : hfPct > ccPct ? "Hawaii Farming" : null;
+
+  return (
+    <Link
+      href="/farm-vs-farm"
+      className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
+    >
+      <h2 className="font-semibold text-lg mb-2">🌾 Farm vs Farm</h2>
+      <div className="mb-1 flex items-center gap-2">
+        <span className="text-xl font-bold tabular-nums text-orange-500">{ccPct}%</span>
+        <span className="text-xs text-muted-foreground">vs</span>
+        <span className="text-xl font-bold tabular-nums text-green-600">{hfPct}%</span>
+      </div>
+      <p className="text-xs text-muted-foreground mb-3">
+        {leader ? `${leader} leading by ${diff}%` : "Teams tied!"}
+      </p>
+      <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+        View standings →
+      </span>
+    </Link>
+  );
+}
+
+function FarmVsFarmCardSkeleton() {
+  return (
+    <div className="border border-border rounded-lg p-6">
+      <div className="h-5 w-32 bg-muted rounded animate-pulse mb-3" />
+      <div className="h-7 w-28 bg-muted rounded animate-pulse mb-2" />
+      <div className="h-3 w-36 bg-muted rounded animate-pulse mb-4" />
+      <div className="h-5 w-24 bg-muted rounded animate-pulse" />
+    </div>
+  );
+}
 
 async function Dashboard() {
   const supabase = await createClient();
@@ -126,6 +167,11 @@ async function Dashboard() {
             View leaderboard →
           </span>
         </Link>
+
+        {/* Farm vs Farm */}
+        <Suspense fallback={<FarmVsFarmCardSkeleton />}>
+          <FarmVsFarmCard />
+        </Suspense>
 
         {/* Bracket */}
         <Link
