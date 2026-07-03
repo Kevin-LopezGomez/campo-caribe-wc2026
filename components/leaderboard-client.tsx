@@ -147,15 +147,20 @@ export function LeaderboardClient({
             <h2 className="text-sm font-semibold">Top by Department</h2>
           </div>
           <div className="divide-y divide-border">
-            {deptGroups.map((group) => {
-              const qualifying =
-                canSeeTestUsers && includeTest
-                  ? group.users
-                  : group.users.filter((u) => !u.is_test);
-              if (qualifying.length === 0) return null;
-              const maxPts = Math.max(...qualifying.map((u) => u.total_points));
-              const topUsers = qualifying.filter((u) => u.total_points === maxPts);
-              return (
+            {deptGroups
+              .map((group) => {
+                const qualifying =
+                  canSeeTestUsers && includeTest
+                    ? group.users
+                    : group.users.filter((u) => !u.is_test);
+                if (qualifying.length === 0) return null;
+                const maxPts = Math.max(...qualifying.map((u) => u.total_points));
+                const topUsers = qualifying.filter((u) => u.total_points === maxPts);
+                return { group, topUsers, maxPts };
+              })
+              .filter((d): d is NonNullable<typeof d> => d !== null)
+              .sort((a, b) => b.maxPts - a.maxPts)
+              .map(({ group, topUsers }) => (
                 <div key={group.department} className="flex items-start gap-3 px-4 py-2.5">
                   <span className="w-32 shrink-0 text-xs text-muted-foreground pt-0.5">
                     {group.department}
@@ -172,8 +177,7 @@ export function LeaderboardClient({
                     ))}
                   </div>
                 </div>
-              );
-            })}
+              ))}
           </div>
         </div>
       )}
