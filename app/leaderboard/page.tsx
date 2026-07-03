@@ -147,7 +147,7 @@ async function LeaderboardData() {
   });
 
   // Build department groups for CC users (all members, top computed client-side to respect toggle)
-  const DEPT_ORDER = ["Operations", "Management", "Grow", "Food Safety", "Sales & Marketing"];
+  const DEPT_ORDER = ["Management", "Production", "Post Harvest", "Food Safety", "Procurement", "Maintenance", "Sales & Marketing", "Data"];
   const deptByUser = new Map(
     (companyData ?? [])
       .filter((p) => p.company === "Campo Caribe" && p.home_department)
