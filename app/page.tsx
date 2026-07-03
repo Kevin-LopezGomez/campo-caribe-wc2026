@@ -174,6 +174,22 @@ async function Dashboard() {
           <FarmVsFarmCard />
         </Suspense>
 
+        {/* Match Predictor */}
+        <Link
+          href="/predictor"
+          className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
+        >
+          <h2 className="font-semibold text-lg mb-2">🔮 Match Predictor</h2>
+          <p className="text-sm text-muted-foreground mb-3">
+            Pick the winner of every knockout match before kickoff.
+          </p>
+          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+            {picksOf > 0
+              ? `${picksMade} of ${picksOf} picks →`
+              : "View matches →"}
+          </span>
+        </Link>
+
         {/* Bracket */}
         <Link
           href="/bracket"
@@ -248,21 +264,6 @@ async function Dashboard() {
           </span>
         </Link>
 
-        {/* Match Predictor */}
-        <Link
-          href="/predictor"
-          className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
-        >
-          <h2 className="font-semibold text-lg mb-2">🔮 Match Predictor</h2>
-          <p className="text-sm text-muted-foreground mb-3">
-            Pick the winner of every knockout match before kickoff.
-          </p>
-          <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
-            {picksOf > 0
-              ? `${picksMade} of ${picksOf} picks →`
-              : "View matches →"}
-          </span>
-        </Link>
       </div>
 
       {/* Admin card — role: admin or dev */}
