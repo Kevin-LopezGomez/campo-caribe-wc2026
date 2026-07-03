@@ -58,6 +58,20 @@ function CompanyRoster({
   );
 }
 
+function LeaderSpan({ name }: { name: string }) {
+  return (
+    <span
+      className={
+        name === "Campo Caribe"
+          ? "font-semibold text-orange-500"
+          : "font-semibold text-green-600"
+      }
+    >
+      {name}
+    </span>
+  );
+}
+
 async function FarmVsFarmContent() {
   const supabase = await createClient();
   const {
@@ -69,9 +83,13 @@ async function FarmVsFarmContent() {
 
   const ccPct = Math.round(cc.teamAccuracy * 100);
   const hfPct = Math.round(hf.teamAccuracy * 100);
-  const diff = Math.abs(ccPct - hfPct);
-  const leader =
-    ccPct > hfPct ? "Campo Caribe" : hfPct > ccPct ? "Hawaii Farming" : null;
+  const accuracyLeader = ccPct > hfPct ? "Campo Caribe" : hfPct > ccPct ? "Hawaii Farming" : null;
+  const accuracyDiff = Math.abs(ccPct - hfPct);
+
+  const ccPts = cc.topPointsTotal;
+  const hfPts = hf.topPointsTotal;
+  const pointsLeader = ccPts > hfPts ? "Campo Caribe" : hfPts > ccPts ? "Hawaii Farming" : null;
+  const pointsDiff = Math.abs(ccPts - hfPts);
 
   return (
     <div className="space-y-8">
@@ -95,6 +113,9 @@ async function FarmVsFarmContent() {
             <span className="text-sm font-semibold text-orange-500 sm:hidden">CC</span>
             <span className="text-5xl font-bold tabular-nums text-orange-500">
               {ccPct}%
+            </span>
+            <span className="text-sm font-semibold tabular-nums text-orange-500/70">
+              {ccPts} pts
             </span>
             {cc.topUsers.length > 0 && cc.topUsers.length < TOP_N && (
               <span className="text-xs text-muted-foreground">
@@ -123,6 +144,9 @@ async function FarmVsFarmContent() {
             <span className="text-5xl font-bold tabular-nums text-green-600">
               {hfPct}%
             </span>
+            <span className="text-sm font-semibold tabular-nums text-green-600/70">
+              {hfPts} pts
+            </span>
             {hf.topUsers.length > 0 && hf.topUsers.length < TOP_N && (
               <span className="text-xs text-muted-foreground">
                 ({hf.topUsers.length} users)
@@ -131,24 +155,31 @@ async function FarmVsFarmContent() {
           </div>
         </div>
 
-        <p className="mt-5 text-center text-sm text-muted-foreground">
-          {leader ? (
-            <>
-              <span
-                className={
-                  leader === "Campo Caribe"
-                    ? "font-semibold text-orange-500"
-                    : "font-semibold text-green-600"
-                }
-              >
-                {leader}
-              </span>{" "}
-              leading by {diff}%
-            </>
+        {/* Leader indicators */}
+        <div className="mt-5 space-y-1 text-center text-sm text-muted-foreground">
+          {accuracyLeader === pointsLeader && accuracyLeader !== null ? (
+            <p>
+              <LeaderSpan name={accuracyLeader} /> leading in both accuracy and points
+            </p>
           ) : (
-            "Tied — too close to call!"
+            <>
+              {accuracyLeader ? (
+                <p>
+                  <LeaderSpan name={accuracyLeader} /> leading by {accuracyDiff}% accuracy
+                </p>
+              ) : (
+                <p>Tied on accuracy</p>
+              )}
+              {pointsLeader ? (
+                <p>
+                  <LeaderSpan name={pointsLeader} /> leading by {pointsDiff} points
+                </p>
+              ) : (
+                <p>Tied on points</p>
+              )}
+            </>
           )}
-        </p>
+        </div>
       </div>
 
       {/* Per-company top-5 breakdown */}
@@ -169,6 +200,12 @@ async function FarmVsFarmContent() {
             </span>
           </h2>
           <CompanyRoster users={cc.topUsers} color="orange" />
+          {cc.topUsers.length > 0 && (
+            <p className="mt-2 text-right text-xs text-muted-foreground">
+              Top {cc.topUsers.length} total:{" "}
+              <span className="font-semibold text-foreground">{ccPts} pts</span>
+            </p>
+          )}
         </div>
 
         {/* Hawaii Farming */}
@@ -187,6 +224,12 @@ async function FarmVsFarmContent() {
             </span>
           </h2>
           <CompanyRoster users={hf.topUsers} color="green" />
+          {hf.topUsers.length > 0 && (
+            <p className="mt-2 text-right text-xs text-muted-foreground">
+              Top {hf.topUsers.length} total:{" "}
+              <span className="font-semibold text-foreground">{hfPts} pts</span>
+            </p>
+          )}
         </div>
       </div>
 
@@ -207,9 +250,14 @@ async function FarmVsFarmContent() {
             by total points — same ranking as the individual leaderboard.
           </p>
           <p>
-            <strong className="text-foreground">Company score</strong> = average accuracy
-            of those top {TOP_N} scorers. Accuracy = (correct match picks + correct R/D
-            advances) ÷ (picks made before kickoff + R/D matches played).
+            <strong className="text-foreground">Accuracy %</strong> = average accuracy of
+            those top {TOP_N} scorers. Accuracy per user = (correct match picks + correct
+            R/D advances) ÷ (picks made before kickoff + R/D matches played).
+          </p>
+          <p>
+            <strong className="text-foreground">Total pts</strong> = combined points of the
+            top {TOP_N} scorers. Both metrics are shown because accuracy measures precision
+            and points measure overall output.
           </p>
           <p>
             Users need at least {MIN_OPPORTUNITIES} qualifying opportunities to be included.

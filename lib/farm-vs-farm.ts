@@ -15,7 +15,8 @@ export type UserAccuracy = {
 
 export type CompanyStats = {
   company: string;
-  teamAccuracy: number; // average of top-N qualified users
+  teamAccuracy: number; // average accuracy of top-N users
+  topPointsTotal: number; // sum of top-N users' points
   topUsers: UserAccuracy[];
   totalSignups: number;
   qualifiedCount: number;
@@ -125,7 +126,8 @@ export async function getFarmVsFarmData(): Promise<FarmVsFarmData> {
       topUsers.length > 0
         ? topUsers.reduce((s, u) => s + u.accuracy, 0) / topUsers.length
         : 0;
-    return { company, teamAccuracy, topUsers, totalSignups, qualifiedCount: qualified.length };
+    const topPointsTotal = topUsers.reduce((s, u) => s + u.total_points, 0);
+    return { company, teamAccuracy, topPointsTotal, topUsers, totalSignups, qualifiedCount: qualified.length };
   }
 
   return {
