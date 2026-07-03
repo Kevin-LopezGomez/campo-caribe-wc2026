@@ -10,6 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import type { UserRole } from "@/lib/types/database";
 
+export type DeptGroup = {
+  department: string;
+  users: Array<{ user_id: string; full_name: string; total_points: number; is_test: boolean }>;
+};
+
 export type LeaderboardRow = {
   rank: number;
   user_id: string;
@@ -39,11 +44,13 @@ export function LeaderboardClient({
   currentUserId,
   canSeeTestUsers,
   rodRevealed,
+  deptGroups,
 }: {
   rows: LeaderboardRow[];
   currentUserId: string;
   canSeeTestUsers: boolean;
   rodRevealed: boolean;
+  deptGroups?: DeptGroup[];
 }) {
   const [includeTest, setIncludeTest] = useState(false);
   const [selected, setSelected] = useState<LeaderboardRow | null>(null);
@@ -132,6 +139,41 @@ export function LeaderboardClient({
         </table>
         </div>
       </div>
+
+      {/* Top by Department card — CC users only */}
+      {deptGroups && deptGroups.length > 0 && (
+        <div className="border border-border rounded-lg overflow-hidden">
+          <div className="px-4 py-3 bg-muted/40 border-b border-border">
+            <h2 className="text-sm font-semibold">Top by Department</h2>
+          </div>
+          <div className="divide-y divide-border">
+            {deptGroups.map((group) => {
+              const qualifying =
+                canSeeTestUsers && includeTest
+                  ? group.users
+                  : group.users.filter((u) => !u.is_test);
+              if (qualifying.length === 0) return null;
+              const maxPts = Math.max(...qualifying.map((u) => u.total_points));
+              const topUsers = qualifying.filter((u) => u.total_points === maxPts);
+              return (
+                <div key={group.department} className="flex items-start gap-3 px-4 py-2.5">
+                  <span className="w-32 shrink-0 text-xs text-muted-foreground pt-0.5">
+                    {group.department}
+                  </span>
+                  <div className="flex-1 min-w-0 space-y-0.5">
+                    {topUsers.map((u) => (
+                      <div key={u.user_id} className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-medium truncate">{formatName(u.full_name)}</span>
+                        <span className="shrink-0 text-sm font-bold tabular-nums">{u.total_points} pts</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Score breakdown dialog */}
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>

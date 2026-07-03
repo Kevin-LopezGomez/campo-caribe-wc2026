@@ -6,6 +6,7 @@ import { AppNav } from "@/components/app-nav";
 import {
   LeaderboardClient,
   type LeaderboardRow,
+  type DeptGroup,
 } from "@/components/leaderboard-client";
 import type { Round, UserRole } from "@/lib/types/database";
 
@@ -25,10 +26,11 @@ async function LeaderboardData() {
   // Fetch profile of current user to know their role
   const { data: myProfile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, company")
     .eq("id", user.id)
     .single();
   const canSeeTestUsers = ["admin", "dev"].includes(myProfile?.role ?? "");
+  const isCampoCaribe = myProfile?.company === "Campo Caribe";
 
   const [lbRes, rodRes, scoresRes, tiebreakerMatchRes, lockRes, companyRes, teamsRes] = await Promise.all([
     // get_leaderboard now returns role + is_test
@@ -41,11 +43,11 @@ async function LeaderboardData() {
       .in("round", TB_ROUNDS)
       .eq("status", "completed"),
     admin.from("settings").select("value").eq("key", "ride_or_die_lock_time").maybeSingle(),
-    admin.from("profiles").select("id, company"),
+    admin.from("profiles").select("id, company, home_department, is_test"),
     admin.from("teams").select("id, flag_emoji"),
   ]);
 
-  type CompanyRow = { id: string; company: string | null };
+  type CompanyRow = { id: string; company: string | null; home_department: string | null; is_test: boolean };
   const companyData = companyRes.data as unknown as CompanyRow[] | null;
   const companyByUser = new Map(
     (companyData ?? []).map((p) => [p.id, p.company])
@@ -144,12 +146,38 @@ async function LeaderboardData() {
     };
   });
 
+  // Build department groups for CC users (all members, top computed client-side to respect toggle)
+  const DEPT_ORDER = ["Operations", "Management", "Grow", "Food Safety", "Sales & Marketing"];
+  const deptByUser = new Map(
+    (companyData ?? [])
+      .filter((p) => p.company === "Campo Caribe" && p.home_department)
+      .map((p) => [p.id, p.home_department!])
+  );
+  const deptGroupMap = new Map<string, DeptGroup["users"]>();
+  if (isCampoCaribe) {
+    for (const row of rows) {
+      const dept = deptByUser.get(row.user_id);
+      if (!dept) continue;
+      if (!deptGroupMap.has(dept)) deptGroupMap.set(dept, []);
+      deptGroupMap.get(dept)!.push({
+        user_id: row.user_id,
+        full_name: row.full_name,
+        total_points: row.total_points,
+        is_test: row.is_test,
+      });
+    }
+  }
+  const deptGroups: DeptGroup[] = DEPT_ORDER
+    .filter((d) => deptGroupMap.has(d))
+    .map((d) => ({ department: d, users: deptGroupMap.get(d)! }));
+
   return (
     <LeaderboardClient
       rows={rows}
       currentUserId={user.id}
       canSeeTestUsers={canSeeTestUsers}
       rodRevealed={rodRevealed}
+      deptGroups={isCampoCaribe ? deptGroups : undefined}
     />
   );
 }
