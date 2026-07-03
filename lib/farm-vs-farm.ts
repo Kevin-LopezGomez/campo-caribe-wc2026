@@ -7,6 +7,7 @@ export type UserAccuracy = {
   user_id: string;
   full_name: string;
   company: string;
+  total_points: number;
   correct: number;
   opportunities: number;
   accuracy: number; // 0–1
@@ -28,8 +29,8 @@ export type FarmVsFarmData = {
 export async function getFarmVsFarmData(): Promise<FarmVsFarmData> {
   const admin = createAdminClient();
 
-  // Parallel fetch: profiles, completed matches, R/D picks
-  const [profilesRes, matchesRes, rodPicksRes] = await Promise.all([
+  // Parallel fetch: profiles, completed matches, R/D picks, score events
+  const [profilesRes, matchesRes, rodPicksRes, scoreEventsRes] = await Promise.all([
     admin
       .from("profiles")
       .select("id, full_name, company")
@@ -40,7 +41,14 @@ export async function getFarmVsFarmData(): Promise<FarmVsFarmData> {
       .select("id, team_home_id, team_away_id, kickoff_time, winner_team_id")
       .eq("status", "completed"),
     admin.from("ride_or_die_picks").select("user_id, team_id"),
+    admin.from("score_events").select("user_id, points"),
   ]);
+
+  // Sum points per user
+  const pointsByUser = new Map<string, number>();
+  for (const e of scoreEventsRes.data ?? []) {
+    pointsByUser.set(e.user_id, (pointsByUser.get(e.user_id) ?? 0) + e.points);
+  }
 
   const profiles = (profilesRes.data ?? []).filter(
     (p) => p.company === "Campo Caribe" || p.company === "Hawaii Farming"
@@ -99,6 +107,7 @@ export async function getFarmVsFarmData(): Promise<FarmVsFarmData> {
       user_id: profile.id,
       full_name: profile.full_name,
       company: profile.company!,
+      total_points: pointsByUser.get(profile.id) ?? 0,
       correct,
       opportunities,
       accuracy: opportunities > 0 ? correct / opportunities : 0,
@@ -110,7 +119,7 @@ export async function getFarmVsFarmData(): Promise<FarmVsFarmData> {
     const totalSignups = users.length;
     const qualified = users
       .filter((u) => u.opportunities >= MIN_OPPORTUNITIES)
-      .sort((a, b) => b.accuracy - a.accuracy);
+      .sort((a, b) => b.total_points - a.total_points);
     const topUsers = qualified.slice(0, TOP_N);
     const teamAccuracy =
       topUsers.length > 0

@@ -47,11 +47,9 @@ function CompanyRoster({
             {formatName(u.full_name)}
           </span>
           <div className="shrink-0 text-right">
-            <span className={`text-sm font-bold tabular-nums ${textColor}`}>
-              {pct(u.accuracy)}
-            </span>
+            <span className="text-sm font-bold tabular-nums">{u.total_points} pts</span>
             <span className="ml-1.5 text-xs text-muted-foreground">
-              ({u.correct}/{u.opportunities})
+              · {pct(u.accuracy)} ({u.correct}/{u.opportunities})
             </span>
           </div>
         </div>
@@ -205,27 +203,18 @@ async function FarmVsFarmContent() {
         </summary>
         <div className="space-y-2 border-t border-border px-4 pb-4 pt-3 text-sm text-muted-foreground">
           <p>
-            Each user&apos;s{" "}
-            <strong className="text-foreground">accuracy rate</strong> ={" "}
-            (correct picks + correct R/D advances) ÷ (picks made before kickoff + R/D
-            matches played).
+            <strong className="text-foreground">Top {TOP_N} per company</strong> are chosen
+            by total points — same ranking as the individual leaderboard.
           </p>
           <p>
-            <strong className="text-foreground">Correct picks:</strong> match predictions
-            where the picked team won, submitted before kickoff.
+            <strong className="text-foreground">Company score</strong> = average accuracy
+            of those top {TOP_N} scorers. Accuracy = (correct match picks + correct R/D
+            advances) ÷ (picks made before kickoff + R/D matches played).
           </p>
           <p>
-            <strong className="text-foreground">Correct R/D advances:</strong> each round
-            your Ride or Die team advanced (won their match).
-          </p>
-          <p>
-            <strong className="text-foreground">Company score:</strong> average accuracy of
-            the top {TOP_N} qualified users per company. Users need at least{" "}
-            {MIN_OPPORTUNITIES} qualifying opportunities to be included.
-          </p>
-          <p>
-            Late signups are not penalized — only picks and R/D rounds that were available
-            to you count.
+            Users need at least {MIN_OPPORTUNITIES} qualifying opportunities to be included.
+            Late signups are not penalized — only picks and R/D rounds available to you
+            count.
           </p>
         </div>
       </details>
