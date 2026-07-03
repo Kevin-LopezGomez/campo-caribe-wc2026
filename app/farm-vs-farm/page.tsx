@@ -45,6 +45,7 @@ function CompanyRoster({
           </span>
           <span className="min-w-0 flex-1 truncate text-sm font-medium">
             {formatName(u.full_name)}
+            {u.rod_flag && <span className="ml-1.5">{u.rod_flag}</span>}
           </span>
           <div className="shrink-0 text-right">
             <span className="text-sm font-bold tabular-nums">{u.total_points} pts</span>

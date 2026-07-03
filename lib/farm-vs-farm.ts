@@ -11,6 +11,7 @@ export type UserAccuracy = {
   correct: number;
   opportunities: number;
   accuracy: number; // 0–1
+  rod_flag: string | null;
 };
 
 export type CompanyStats = {
@@ -41,7 +42,7 @@ export async function getFarmVsFarmData(): Promise<FarmVsFarmData> {
       .from("matches")
       .select("id, team_home_id, team_away_id, kickoff_time, winner_team_id")
       .eq("status", "completed"),
-    admin.from("ride_or_die_picks").select("user_id, team_id"),
+    admin.from("ride_or_die_picks").select("user_id, team_id, team:team_id(flag_emoji)"),
     admin.from("score_events").select("user_id, points"),
   ]);
 
@@ -56,7 +57,12 @@ export async function getFarmVsFarmData(): Promise<FarmVsFarmData> {
   );
   const completedMatches = matchesRes.data ?? [];
   const matchById = new Map(completedMatches.map((m) => [m.id, m]));
-  const rodByUser = new Map((rodPicksRes.data ?? []).map((r) => [r.user_id, r.team_id]));
+  const rodByUser = new Map(
+    (rodPicksRes.data ?? []).map((r) => [
+      r.user_id,
+      { team_id: r.team_id, flag_emoji: (r.team as unknown as { flag_emoji: string } | null)?.flag_emoji ?? null },
+    ])
+  );
 
   // Fetch match picks for completed matches only
   const matchIds = completedMatches.map((m) => m.id);
@@ -90,7 +96,8 @@ export async function getFarmVsFarmData(): Promise<FarmVsFarmData> {
     );
 
     // Ride or Die: count matches team played in, and matches they won
-    const rodTeamId = rodByUser.get(profile.id) ?? null;
+    const rod = rodByUser.get(profile.id) ?? null;
+    const rodTeamId = rod?.team_id ?? null;
     let rodPlayed = 0;
     let rodCorrect = 0;
     if (rodTeamId) {
@@ -112,6 +119,7 @@ export async function getFarmVsFarmData(): Promise<FarmVsFarmData> {
       correct,
       opportunities,
       accuracy: opportunities > 0 ? correct / opportunities : 0,
+      rod_flag: rod?.flag_emoji ?? null,
     };
   });
 
