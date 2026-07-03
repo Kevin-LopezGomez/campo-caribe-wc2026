@@ -164,6 +164,7 @@ async function LeaderboardData() {
         full_name: row.full_name,
         total_points: row.total_points,
         is_test: row.is_test,
+        rod_flag: row.rod_flag,
       });
     }
   }

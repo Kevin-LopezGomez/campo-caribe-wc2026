@@ -12,7 +12,7 @@ import type { UserRole } from "@/lib/types/database";
 
 export type DeptGroup = {
   department: string;
-  users: Array<{ user_id: string; full_name: string; total_points: number; is_test: boolean }>;
+  users: Array<{ user_id: string; full_name: string; total_points: number; is_test: boolean; rod_flag: string | null }>;
 };
 
 export type LeaderboardRow = {
@@ -163,7 +163,10 @@ export function LeaderboardClient({
                   <div className="flex-1 min-w-0 space-y-0.5">
                     {topUsers.map((u) => (
                       <div key={u.user_id} className="flex items-center justify-between gap-2">
-                        <span className="text-sm font-medium truncate">{formatName(u.full_name)}</span>
+                        <span className="text-sm font-medium truncate">
+                          {formatName(u.full_name)}
+                          {rodRevealed && u.rod_flag && <span className="ml-1.5">{u.rod_flag}</span>}
+                        </span>
                         <span className="shrink-0 text-sm font-bold tabular-nums">{u.total_points} pts</span>
                       </div>
                     ))}
