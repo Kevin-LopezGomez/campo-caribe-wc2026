@@ -16,24 +16,34 @@ async function FarmVsFarmCard() {
   const { cc, hf } = await getFarmVsFarmData();
   const ccPct = Math.round(cc.teamAccuracy * 100);
   const hfPct = Math.round(hf.teamAccuracy * 100);
-  const diff = Math.abs(ccPct - hfPct);
-  const leader =
-    ccPct > hfPct ? "Campo Caribe" : hfPct > ccPct ? "Hawaii Farming" : null;
+  const accDiff = Math.abs(ccPct - hfPct);
+  const accLeader = ccPct > hfPct ? "Campo Caribe" : hfPct > ccPct ? "Hawaii Farming" : null;
+  const ccPts = cc.topPointsTotal;
+  const hfPts = hf.topPointsTotal;
+  const ptsDiff = Math.abs(ccPts - hfPts);
+  const ptsLeader = ccPts > hfPts ? "Campo Caribe" : hfPts > ccPts ? "Hawaii Farming" : null;
 
   return (
     <Link
       href="/farm-vs-farm"
       className="border border-border rounded-lg p-6 hover:bg-muted/30 transition-colors block"
     >
-      <h2 className="font-semibold text-lg mb-2">🌾 Farm vs Farm</h2>
-      <div className="mb-1 flex items-center gap-2">
-        <span className="text-xl font-bold tabular-nums text-orange-500">{ccPct}%</span>
+      <h2 className="font-semibold text-lg mb-3">🌾 Farm vs Farm</h2>
+      <div className="mb-3 flex items-center gap-4">
+        <div className="flex flex-col items-center">
+          <span className="text-xl font-bold tabular-nums text-orange-500">{ccPct}%</span>
+          <span className="text-xs tabular-nums text-orange-500/70">{ccPts} pts</span>
+        </div>
         <span className="text-xs text-muted-foreground">vs</span>
-        <span className="text-xl font-bold tabular-nums text-green-600">{hfPct}%</span>
+        <div className="flex flex-col items-center">
+          <span className="text-xl font-bold tabular-nums text-green-600">{hfPct}%</span>
+          <span className="text-xs tabular-nums text-green-600/70">{hfPts} pts</span>
+        </div>
       </div>
-      <p className="text-xs text-muted-foreground mb-3">
-        {leader ? `${leader} leading by ${diff}%` : "Teams tied!"}
-      </p>
+      <div className="mb-3 space-y-0.5 text-xs text-muted-foreground">
+        {accLeader ? <p>{accLeader} leading by {accDiff}% accuracy</p> : <p>Tied on accuracy</p>}
+        {ptsLeader ? <p>{ptsLeader} leading by {ptsDiff} pts</p> : <p>Tied on points</p>}
+      </div>
       <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
         View standings →
       </span>
@@ -114,15 +124,6 @@ async function Dashboard() {
 
   return (
     <div className="flex-1 w-full max-w-5xl p-6 flex flex-col gap-8">
-      <div>
-        <h1 className="text-3xl font-bold">
-          Welcome, {profile?.full_name?.split(", ")[1] ?? "there"} 👋
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          The Farm Cup 2026 — World Cup Prediction Challenge
-        </p>
-      </div>
-
       {/* vs banner — full-width centering independent of grid */}
       <div className="w-full flex justify-center">
         <div className="flex items-center gap-5">

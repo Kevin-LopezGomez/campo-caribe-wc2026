@@ -10,10 +10,10 @@ import { LogoutButton } from "@/components/logout-button";
 const BASE_LINKS = [
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/farm-vs-farm", label: "Farm vs Farm" },
+  { href: "/predictor", label: "Predictor" },
   { href: "/chat", label: "Chat" },
   { href: "/bracket", label: "Bracket" },
   { href: "/ride-or-die", label: "Ride or Die" },
-  { href: "/predictor", label: "Predictor" },
 ] as const;
 
 const ADMIN_LINKS = [
