@@ -28,6 +28,13 @@ export type LeaderboardRow = {
   score_events: Array<{ points: number; reason: string; created_at: string; flag_emoji?: string }>;
 };
 
+const ROUND_PRIORITY: Record<string, number> = { F: 6, SF: 5, QF: 4, R16: 3, R32: 2, R64: 1 };
+
+function roundPriority(reason: string): number {
+  const m = reason.match(/\(([^)]+)\)$/);
+  return m ? (ROUND_PRIORITY[m[1]] ?? 0) : 0;
+}
+
 function formatName(full_name: string): string {
   const comma = full_name.indexOf(",");
   if (comma === -1) return full_name;
@@ -205,7 +212,7 @@ export function LeaderboardClient({
                   <p className="text-xs text-muted-foreground">No points yet</p>
                 ) : (
                   <div className="space-y-0.5 text-xs max-h-64 overflow-y-auto">
-                    {selected.score_events.map((e, i) => {
+                    {[...selected.score_events].sort((a, b) => roundPriority(b.reason) - roundPriority(a.reason)).map((e, i) => {
                       return (
                         <div key={i} className="flex gap-3">
                           <span className="font-mono text-green-600 w-8 text-right shrink-0">
