@@ -212,7 +212,11 @@ export function LeaderboardClient({
                   <p className="text-xs text-muted-foreground">No points yet</p>
                 ) : (
                   <div className="space-y-0.5 text-xs max-h-64 overflow-y-auto">
-                    {[...selected.score_events].sort((a, b) => roundPriority(b.reason) - roundPriority(a.reason)).map((e, i) => {
+                    {[...selected.score_events].sort((a, b) => {
+                      const rDiff = roundPriority(b.reason) - roundPriority(a.reason);
+                      if (rDiff !== 0) return rDiff;
+                      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                    }).map((e, i) => {
                       return (
                         <div key={i} className="flex gap-3">
                           <span className="font-mono text-green-600 w-8 text-right shrink-0">
