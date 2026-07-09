@@ -36,7 +36,7 @@ async function LeaderboardData() {
     // get_leaderboard now returns role + is_test
     admin.rpc("get_leaderboard"),
     admin.from("ride_or_die_picks").select("user_id, team:team_id(name, flag_emoji)"),
-    admin.from("score_events").select("user_id, points, reason, created_at, team_id").order("created_at"),
+    admin.from("score_events").select("user_id, points, reason, created_at, team_id").order("created_at", { ascending: false }),
     admin
       .from("matches")
       .select("id, round, winner_team_id")
