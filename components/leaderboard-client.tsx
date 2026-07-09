@@ -206,14 +206,13 @@ export function LeaderboardClient({
                 ) : (
                   <div className="space-y-0.5 text-xs max-h-64 overflow-y-auto">
                     {selected.score_events.map((e, i) => {
-                      const isRod = e.reason.startsWith("Ride or Die") || e.reason.startsWith("Loyalty bonus");
                       return (
                         <div key={i} className="flex gap-3">
                           <span className="font-mono text-green-600 w-8 text-right shrink-0">
                             +{e.points}
                           </span>
                           <span className="text-muted-foreground">
-                            {!isRod && e.flag_emoji && <span className="mr-1">{e.flag_emoji}</span>}
+                            {e.flag_emoji && <span className="mr-1">{e.flag_emoji}</span>}
                             {e.reason}
                           </span>
                         </div>
