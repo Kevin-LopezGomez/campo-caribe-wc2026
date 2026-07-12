@@ -6,6 +6,11 @@
 -- used for winners via next_match_id.
 -- ============================================================
 
+-- Widen the round check constraint to include '3RD'.
+ALTER TABLE public.matches DROP CONSTRAINT IF EXISTS matches_round_check;
+ALTER TABLE public.matches ADD CONSTRAINT matches_round_check
+  CHECK (round IN ('R32', 'R16', 'QF', 'SF', 'F', '3RD'));
+
 ALTER TABLE public.matches
   ADD COLUMN IF NOT EXISTS next_match_loser_id uuid REFERENCES public.matches(id);
 
