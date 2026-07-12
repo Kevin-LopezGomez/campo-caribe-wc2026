@@ -280,6 +280,7 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
           {/* Optional score prediction */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>Score (optional):</span>
+            <span>{home.flag_emoji}</span>
             <input
               type="number"
               min="0"
@@ -299,6 +300,7 @@ function MatchPickCard({ match }: { match: PredictorMatchData }) {
               placeholder="0"
               className="w-12 border border-input rounded px-2 py-1 text-center text-foreground bg-background text-sm"
             />
+            <span>{away.flag_emoji}</span>
           </div>
 
           <div className="flex items-center gap-3">
