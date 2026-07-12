@@ -8,7 +8,6 @@ const ROUND_SHORT: Record<string, string> = {
   QF: "QF",
   SF: "SF",
   F: "Final",
-  "3RD": "3rd Place",
 };
 
 type TeamSnap = {
@@ -33,7 +32,7 @@ export type BracketMatch = {
   winner_team: TeamSnap | null;
 };
 
-const ROUNDS = ["R32", "R16", "QF", "SF", "F", "3RD"] as const;
+const ROUNDS = ["R32", "R16", "QF", "SF", "F"] as const;
 type RoundKey = (typeof ROUNDS)[number];
 
 const ROUND_LABELS: Record<RoundKey, string> = {
@@ -42,7 +41,6 @@ const ROUND_LABELS: Record<RoundKey, string> = {
   QF: "Quarterfinals",
   SF: "Semifinals",
   F: "Final",
-  "3RD": "3rd Place",
 };
 
 function formatKickoff(iso: string) {
@@ -94,7 +92,6 @@ function groupByRound(matches: BracketMatch[]) {
     QF: [],
     SF: [],
     F: [],
-    "3RD": [],
   };
   for (const m of matches) {
     const r = m.round as RoundKey;
@@ -102,8 +99,8 @@ function groupByRound(matches: BracketMatch[]) {
   }
   // R32: sort by hardcoded team-name lookup (independent of PostgREST cache)
   grouped["R32"].sort((a, b) => r32Slot(a) - r32Slot(b));
-  // QF, SF, F, 3RD: sort by kickoff_time (QF must be sorted before R16 sort below)
-  for (const r of ["QF", "SF", "F", "3RD"] as const) {
+  // QF, SF, F: sort by kickoff_time (QF must be sorted before R16 sort below)
+  for (const r of ["QF", "SF", "F"] as const) {
     grouped[r].sort(
       (a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
     );
@@ -257,6 +254,7 @@ function PairRow({ pair }: { pair: BracketPair }) {
 }
 
 export function BracketView({ matches }: { matches: BracketMatch[] }) {
+  const thirdPlaceMatches = useMemo(() => matches.filter((m) => m.round === "3RD"), [matches]);
   const byRound = useMemo(() => groupByRound(matches), [matches]);
   const defaultRound = useMemo(() => getDefaultRound(byRound), [byRound]);
   const [activeRound, setActiveRound] = useState<RoundKey>(defaultRound);
@@ -336,6 +334,16 @@ export function BracketView({ matches }: { matches: BracketMatch[] }) {
             {pairs.map((pair, i) => (
               <PairRow key={i} pair={pair} />
             ))}
+            {activeRound === "SF" && thirdPlaceMatches.length > 0 && (
+              <div className="mt-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                  3rd Place Match
+                </p>
+                {thirdPlaceMatches.map((m) => (
+                  <MatchCard key={m.id} match={m} />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
