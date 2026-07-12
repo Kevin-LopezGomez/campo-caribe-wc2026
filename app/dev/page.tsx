@@ -4,7 +4,7 @@ import { DevDashboardClient } from "./dev-client";
 import { getDevStats } from "./actions";
 import type { Round } from "@/lib/types/database";
 
-const ROUND_ORDER: Record<Round, number> = { R32: 1, R16: 2, QF: 3, SF: 4, F: 5 };
+const ROUND_ORDER: Record<Round, number> = { R32: 1, R16: 2, QF: 3, SF: 4, "3RD": 5, F: 6 };
 
 async function DevData() {
   const admin = createAdminClient();

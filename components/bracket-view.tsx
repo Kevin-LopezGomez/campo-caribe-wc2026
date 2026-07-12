@@ -8,6 +8,7 @@ const ROUND_SHORT: Record<string, string> = {
   QF: "QF",
   SF: "SF",
   F: "Final",
+  "3RD": "3rd Place",
 };
 
 type TeamSnap = {
@@ -32,7 +33,7 @@ export type BracketMatch = {
   winner_team: TeamSnap | null;
 };
 
-const ROUNDS = ["R32", "R16", "QF", "SF", "F"] as const;
+const ROUNDS = ["R32", "R16", "QF", "SF", "F", "3RD"] as const;
 type RoundKey = (typeof ROUNDS)[number];
 
 const ROUND_LABELS: Record<RoundKey, string> = {
@@ -41,6 +42,7 @@ const ROUND_LABELS: Record<RoundKey, string> = {
   QF: "Quarterfinals",
   SF: "Semifinals",
   F: "Final",
+  "3RD": "3rd Place",
 };
 
 function formatKickoff(iso: string) {
@@ -92,6 +94,7 @@ function groupByRound(matches: BracketMatch[]) {
     QF: [],
     SF: [],
     F: [],
+    "3RD": [],
   };
   for (const m of matches) {
     const r = m.round as RoundKey;
@@ -99,8 +102,8 @@ function groupByRound(matches: BracketMatch[]) {
   }
   // R32: sort by hardcoded team-name lookup (independent of PostgREST cache)
   grouped["R32"].sort((a, b) => r32Slot(a) - r32Slot(b));
-  // QF, SF, F: sort by kickoff_time (QF must be sorted before R16 sort below)
-  for (const r of ["QF", "SF", "F"] as const) {
+  // QF, SF, F, 3RD: sort by kickoff_time (QF must be sorted before R16 sort below)
+  for (const r of ["QF", "SF", "F", "3RD"] as const) {
     grouped[r].sort(
       (a, b) => new Date(a.kickoff_time).getTime() - new Date(b.kickoff_time).getTime()
     );

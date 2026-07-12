@@ -7,7 +7,7 @@ export type Json =
   | Json[];
 
 // ---- Domain enums (defined first so they can be used in the Database type) ----
-export type Round = "R32" | "R16" | "QF" | "SF" | "F";
+export type Round = "R32" | "R16" | "QF" | "SF" | "F" | "3RD";
 export type MatchStatus = "scheduled" | "live" | "completed";
 export type UserRole = "user" | "admin" | "dev";
 
@@ -128,6 +128,7 @@ export interface Database {
           home_score: number | null;
           away_score: number | null;
           next_match_id: string | null;
+          next_match_loser_id: string | null;
           bracket_slot: number | null;
         };
         Insert: {
@@ -141,6 +142,7 @@ export interface Database {
           home_score?: number | null;
           away_score?: number | null;
           next_match_id?: string | null;
+          next_match_loser_id?: string | null;
           bracket_slot?: number | null;
         };
         Update: {
@@ -154,6 +156,7 @@ export interface Database {
           home_score?: number | null;
           away_score?: number | null;
           next_match_id?: string | null;
+          next_match_loser_id?: string | null;
           bracket_slot?: number | null;
         };
         Relationships: [];

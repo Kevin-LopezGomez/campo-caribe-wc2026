@@ -20,12 +20,13 @@ import {
   resetMatchResult,
 } from "./actions";
 
-const ROUNDS = ["R32", "R16", "QF", "SF", "F"] as const;
+const ROUNDS = ["R32", "R16", "QF", "SF", "3RD", "F"] as const;
 const ROUND_LABELS: Record<string, string> = {
   R32: "Round of 32",
   R16: "Round of 16",
   QF: "Quarterfinals",
   SF: "Semifinals",
+  "3RD": "3rd Place Match",
   F: "Final",
 };
 

@@ -28,9 +28,10 @@ const ROUND_LABELS: Record<Round, string> = {
   R16: "Round of 16",
   QF: "Quarterfinals",
   SF: "Semifinals",
+  "3RD": "3rd Place Match",
   F: "Final",
 };
-const ROUNDS: Round[] = ["R32", "R16", "QF", "SF", "F"];
+const ROUNDS: Round[] = ["R32", "R16", "QF", "SF", "3RD", "F"];
 
 function formatKickoff(iso: string) {
   return new Intl.DateTimeFormat("en-US", {

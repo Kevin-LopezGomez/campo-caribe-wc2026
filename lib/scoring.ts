@@ -8,6 +8,7 @@ const MATCH_POINTS: Record<Round, number> = {
   QF: 5,
   SF: 8,
   F: 12,
+  "3RD": 10,
 };
 
 const ROD_POINTS: Record<Round, number> = {
@@ -16,6 +17,7 @@ const ROD_POINTS: Record<Round, number> = {
   QF: 15,
   SF: 20,
   F: 30,
+  "3RD": 0,
 };
 
 const EXACT_SCORE_BONUS = 2;
@@ -116,7 +118,7 @@ export async function computeUserScore(
 
   if (rodTeamId) {
     const rodMatches = done.filter(
-      (m) => m.team_home_id === rodTeamId || m.team_away_id === rodTeamId
+      (m) => (m.team_home_id === rodTeamId || m.team_away_id === rodTeamId) && m.round !== "3RD"
     );
 
     for (const m of rodMatches) {

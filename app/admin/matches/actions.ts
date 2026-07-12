@@ -61,7 +61,7 @@ export async function enterMatchResult(
     // matchTeams already fetched above — reuse next_match_id from it
     const { data: currentMatchMeta } = await admin
       .from("matches")
-      .select("next_match_id")
+      .select("next_match_id, next_match_loser_id")
       .eq("id", matchId)
       .single();
 
@@ -87,6 +87,32 @@ export async function enterMatchResult(
       }
     }
 
+    // Loser propagation: slot the losing team into the 3rd place match
+    if (currentMatchMeta?.next_match_loser_id && matchTeams) {
+      const loserId = [matchTeams.team_home_id, matchTeams.team_away_id]
+        .find((id) => id && id !== effectiveWinnerId) ?? null;
+      if (loserId) {
+        const { data: loserMatch } = await admin
+          .from("matches")
+          .select("team_home_id, team_away_id")
+          .eq("id", currentMatchMeta.next_match_loser_id)
+          .single();
+        if (loserMatch) {
+          if (!loserMatch.team_home_id) {
+            await admin
+              .from("matches")
+              .update({ team_home_id: loserId })
+              .eq("id", currentMatchMeta.next_match_loser_id);
+          } else if (!loserMatch.team_away_id) {
+            await admin
+              .from("matches")
+              .update({ team_away_id: loserId })
+              .eq("id", currentMatchMeta.next_match_loser_id);
+          }
+        }
+      }
+    }
+
     const scoreResult = await recalculateMatchAffectedUsers(matchId);
     if (scoreResult.error) return { error: `Saved, but scoring failed: ${scoreResult.error}` };
   }
@@ -106,7 +132,7 @@ export async function resetMatchResult(
   // Read current state BEFORE resetting so we can remove the winner from the next match
   const { data: currentMatch } = await admin
     .from("matches")
-    .select("next_match_id, winner_team_id")
+    .select("next_match_id, next_match_loser_id, winner_team_id, team_home_id, team_away_id")
     .eq("id", matchId)
     .single();
 
@@ -140,6 +166,32 @@ export async function resetMatchResult(
           .from("matches")
           .update({ team_away_id: null })
           .eq("id", currentMatch.next_match_id);
+      }
+    }
+  }
+
+  // Clear the loser from the 3rd place match slot
+  if (currentMatch?.next_match_loser_id && currentMatch.winner_team_id) {
+    const loserId = [currentMatch.team_home_id, currentMatch.team_away_id]
+      .find((id) => id && id !== currentMatch!.winner_team_id) ?? null;
+    if (loserId) {
+      const { data: loserMatch } = await admin
+        .from("matches")
+        .select("team_home_id, team_away_id")
+        .eq("id", currentMatch.next_match_loser_id)
+        .single();
+      if (loserMatch) {
+        if (loserMatch.team_home_id === loserId) {
+          await admin
+            .from("matches")
+            .update({ team_home_id: null })
+            .eq("id", currentMatch.next_match_loser_id);
+        } else if (loserMatch.team_away_id === loserId) {
+          await admin
+            .from("matches")
+            .update({ team_away_id: null })
+            .eq("id", currentMatch.next_match_loser_id);
+        }
       }
     }
   }
