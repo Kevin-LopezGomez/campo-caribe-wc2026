@@ -18,7 +18,7 @@ async function ChatData() {
     admin.from("profiles").select("role, company").eq("id", user.id).single(),
     supabase
       .from("chat_messages")
-      .select("id, user_id, message, created_at, deleted_at")
+      .select("id, user_id, message, image_url, created_at, deleted_at")
       .is("deleted_at", null)
       .order("created_at", { ascending: true })
       .limit(100),

@@ -271,6 +271,7 @@ export interface Database {
           id: string;
           user_id: string;
           message: string;
+          image_url: string | null;
           created_at: string;
           deleted_at: string | null;
         };
@@ -278,6 +279,7 @@ export interface Database {
           id?: string;
           user_id: string;
           message: string;
+          image_url?: string | null;
           created_at?: string;
           deleted_at?: string | null;
         };
@@ -285,6 +287,7 @@ export interface Database {
           id?: string;
           user_id?: string;
           message?: string;
+          image_url?: string | null;
           created_at?: string;
           deleted_at?: string | null;
         };

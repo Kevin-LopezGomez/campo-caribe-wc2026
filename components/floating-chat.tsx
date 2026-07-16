@@ -49,9 +49,14 @@ export function FloatingChat() {
   const [hasNewMessages, setHasNewMessages] = useState(false);
   const [tick, setTick] = useState(0);
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const listRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const isNearBottomRef = useRef(true);
   const isOpenRef = useRef(false);
 
@@ -75,7 +80,7 @@ export function FloatingChat() {
           .eq("id", user.id)
           .single(),
         supabase.from("chat_messages")
-          .select("id, user_id, message, created_at, deleted_at")
+          .select("id, user_id, message, image_url, created_at, deleted_at")
           .is("deleted_at", null)
           .order("created_at", { ascending: true })
           .limit(100),
@@ -118,7 +123,7 @@ export function FloatingChat() {
         async (payload) => {
           const { data: row } = await supabase
             .from("chat_messages")
-            .select("id, user_id, message, created_at, deleted_at")
+            .select("id, user_id, message, image_url, created_at, deleted_at")
             .eq("id", payload.new.id)
             .single();
           if (!row) return;
@@ -182,16 +187,57 @@ export function FloatingChat() {
     el.style.height = `${el.scrollHeight}px`;
   }
 
-  function handleSend() {
-    const text = input.trim();
-    if (!text || text.length > 500 || isPending) return;
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setSendError("Image must be under 5 MB.");
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
     setSendError(null);
+  }
+
+  function clearImage() {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
+  async function handleSend() {
+    const text = input.trim();
+    if (!text && !imageFile) return;
+    if (text.length > 500 || isPending || isUploading) return;
+    setSendError(null);
+
+    let imageUrl: string | undefined;
+
+    if (imageFile) {
+      setIsUploading(true);
+      const ext = imageFile.name.split(".").pop() ?? "jpg";
+      const path = `${crypto.randomUUID()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage
+        .from("chat-images")
+        .upload(path, imageFile, { contentType: imageFile.type });
+      setIsUploading(false);
+      if (uploadErr) {
+        setSendError("Failed to upload image. Try again.");
+        return;
+      }
+      const { data: { publicUrl } } = supabase.storage
+        .from("chat-images")
+        .getPublicUrl(path);
+      imageUrl = publicUrl;
+    }
+
     startTransition(async () => {
-      const result = await sendMessage(text);
+      const result = await sendMessage(text, imageUrl);
       if (result.error) {
         setSendError(result.error);
       } else {
         setInput("");
+        clearImage();
         if (inputRef.current) inputRef.current.style.height = "auto";
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
       }
@@ -219,7 +265,7 @@ export function FloatingChat() {
 
   const charCount = input.length;
   const overLimit = charCount > 500;
-  const canSend = input.trim().length > 0 && !overLimit && !isPending;
+  const canSend = (input.trim().length > 0 || imageFile !== null) && !overLimit && !isPending && !isUploading;
 
   // Hide on dedicated chat page and for unauthenticated users (ready never true)
   if (pathname === "/chat" || !ready) return null;
@@ -278,13 +324,26 @@ export function FloatingChat() {
                   )}
                   <div className="flex items-start gap-1">
                     <div className="w-3.5 shrink-0" />
-                    <p
-                      className={`min-w-0 flex-1 text-xs leading-snug ${
-                        isDeleted ? "italic text-muted-foreground" : "text-foreground"
-                      }`}
-                    >
-                      {isDeleted ? "[Removed]" : msg.message}
-                    </p>
+                    <div className={`min-w-0 flex-1 ${isDeleted ? "italic text-muted-foreground" : "text-foreground"}`}>
+                      {isDeleted ? (
+                        <p className="text-xs leading-snug">[Removed]</p>
+                      ) : (
+                        <>
+                          {msg.image_url && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={msg.image_url}
+                              alt="Shared image"
+                              className="max-h-40 max-w-full rounded-lg object-contain mb-0.5 cursor-pointer"
+                              onClick={() => window.open(msg.image_url!, "_blank")}
+                            />
+                          )}
+                          {msg.message && (
+                            <p className="text-xs leading-snug">{msg.message}</p>
+                          )}
+                        </>
+                      )}
+                    </div>
                     {isAdmin && !isDeleted && (
                       <button
                         onClick={() => handleDelete(msg.id)}
@@ -316,7 +375,41 @@ export function FloatingChat() {
           {/* Input */}
           <div className="shrink-0 border-t border-border px-3 pb-3 pt-2">
             {sendError && <p className="mb-1 text-xs text-destructive">{sendError}</p>}
+            {imagePreview && (
+              <div className="relative mb-1.5 inline-block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={imagePreview} alt="Preview" className="max-h-24 rounded-lg object-contain" />
+                <button
+                  onClick={clearImage}
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted border border-border text-foreground text-[10px] flex items-center justify-center hover:bg-muted-foreground/20"
+                  aria-label="Remove image"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <div className="flex items-end gap-1.5">
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={isPending || isUploading}
+                className="shrink-0 text-muted-foreground hover:text-foreground transition-colors p-0.5 disabled:opacity-40"
+                title="Share image"
+                aria-label="Share image"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+              </button>
               <textarea
                 ref={inputRef}
                 value={input}
@@ -326,7 +419,7 @@ export function FloatingChat() {
                   autoResize(e.target);
                 }}
                 onKeyDown={handleKeyDown}
-                placeholder="Message the group…"
+                placeholder={imageFile ? "Add a caption…" : "Message the group…"}
                 rows={1}
                 className={`flex-1 resize-none rounded-lg border px-2.5 py-1.5 text-xs bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 transition-colors ${
                   overLimit
@@ -340,7 +433,7 @@ export function FloatingChat() {
                 disabled={!canSend}
                 className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-opacity disabled:opacity-40"
               >
-                {isPending ? "…" : "Send"}
+                {isPending || isUploading ? "…" : "Send"}
               </button>
             </div>
             <div

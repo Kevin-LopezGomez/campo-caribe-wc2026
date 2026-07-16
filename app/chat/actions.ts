@@ -3,13 +3,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function sendMessage(message: string): Promise<{ error?: string }> {
+export async function sendMessage(message: string, imageUrl?: string): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated." };
 
   const trimmed = message.trim();
-  if (!trimmed) return { error: "Message cannot be empty." };
+  if (!trimmed && !imageUrl) return { error: "Message cannot be empty." };
   if (trimmed.length > 500) return { error: "Message too long." };
 
   const admin = createAdminClient();
@@ -42,7 +42,7 @@ export async function sendMessage(message: string): Promise<{ error?: string }> 
 
   const { error } = await supabase
     .from("chat_messages")
-    .insert({ user_id: user.id, message: trimmed });
+    .insert({ user_id: user.id, message: trimmed, ...(imageUrl ? { image_url: imageUrl } : {}) });
 
   if (error) return { error: error.message };
   return {};
